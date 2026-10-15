@@ -99,8 +99,8 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
   <div class="chips" id="dest" style="--c:var(--blue)"></div>
 </section>
 
-<section class="card" style="--c:var(--teal)"><h2>ผู้ป่วยรายที่ 1</h2><div id="pt1"></div></section>
-<details class="card" style="--c:var(--vio)"><summary>＋ ผู้ป่วยรายที่ 2 (ถ้ามี)</summary><div id="pt2"></div></details>
+<div id="pts"></div>
+<button type="button" id="addp" style="width:100%;margin:0 0 12px;border-color:var(--vio);color:var(--vio);font-weight:600">＋ เพิ่มผู้ป่วยรายที่ 2</button>
 
 <section class="card" style="--c:var(--red)">
   <h2>ทะเบียนรถ</h2>
@@ -111,7 +111,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
   <p class="tip" id="tip">กำลังสร้างรูปสรุป...</p>
   <div id="card"></div>
   <img id="img" alt="รูปสรุปเคส">
-  <p class="tip" style="margin-top:12px;font-size:12px;opacity:.8">เคสซ้อน = ล้างข้อมูลเหตุเดิม แต่คงวันที่ ALS/BLS ชื่อเจ้าหน้าที่ และทะเบียนรถไว้</p>
+  <p class="tip" style="margin-top:12px;font-size:12px;opacity:.8">เคสซ้อน = ล้างข้อมูลเหตุเดิม คงวันที่ ALS/BLS ชื่อเจ้าหน้าที่ ทะเบียนรถ และใช้เลขไมล์ล่าสุดเป็นไมล์ออกของเคสใหม่</p>
   <div class="bar"><button type="button" id="again" style="background:var(--blue);border-color:var(--blue);color:#fff">＋ เคสซ้อน</button><button type="button" id="newcase">เสร็จ</button></div>
 </div>
 
@@ -120,7 +120,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 <script>
 /* ============ ✏️ จุดที่ต้องแก้ (3 ที่) ============ */
 const LIFF_ID = "2012018268-3LN2vNKu";                              // 1) LIFF ID จาก LINE Developers
-const GAS_URL = "https://script.google.com/macros/s/AKfycbzzfMQ7YG2j93gW-aTlmEW_bgKW5nnrU5WgGbbzAcsbYCTDM867KB4cJD99wdbjgX44/exec";     // 2) Web app URL จาก Apps Script
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwdufriI5q0kvNuj5N4NridbH2v8lS9PyGgttz4Rz6sZAJE-iIU4WXf4cTrs9vQhZ0n/exec";     // 2) Web app URL จาก Apps Script
 const UNIT    = "EMS CHA-AM";                                       // 3) ชื่อหน่วย
 /* ================================================= */
 
@@ -162,8 +162,20 @@ ${f(n,"hn","HN")}
 <div class="g3"><div><label for="p${n}_gcs_e">E (1-4)</label><select id="p${n}_gcs_e">${op(1,4)}</select></div><div><label for="p${n}_gcs_v">V (1-5)</label><select id="p${n}_gcs_v">${op(1,5)}</select></div><div><label for="p${n}_gcs_m">M (1-6)</label><select id="p${n}_gcs_m">${op(1,6)}</select></div></div>
 <label for="p${n}_tx">การรักษา</label><textarea id="p${n}_tx" rows="2"></textarea>
 ${PROC.map(([k,l]) => `<label for="p${n}_${k}">${l}</label><select class="pr" id="p${n}_${k}"><option></option>${PO.map(o => `<option>${o}</option>`).join("")}</select><input id="p${n}_${k}_x" placeholder="ระบุเหตุผล" hidden style="margin-top:6px">`).join("")}`;
-$("pt1").innerHTML = pt(1); $("pt2").innerHTML = pt(2);
-document.querySelectorAll(".pr").forEach(s => s.addEventListener("change", () => $(s.id + "_x").hidden = s.value !== PO[3]));
+let np = 0;
+function addPatient() {
+  if (np >= 20) { msg("เพิ่มผู้ป่วยได้สูงสุด 20 ราย"); return null; }
+  np++;
+  const sec = document.createElement("section");
+  sec.className = "card"; sec.style.setProperty("--c", np === 1 ? "var(--teal)" : "var(--vio)");
+  sec.innerHTML = `<h2>ผู้ป่วยรายที่ ${np}</h2>` + pt(np);
+  $("pts").appendChild(sec);
+  $("addp").textContent = `＋ เพิ่มผู้ป่วยรายที่ ${np + 1}`;
+  return sec;
+}
+addPatient();
+$("addp").addEventListener("click", () => { const sec = addPatient(); if (sec) sec.scrollIntoView({behavior: "smooth", block: "start"}); });
+document.addEventListener("change", e => { const t = e.target; if (t.classList && t.classList.contains("pr")) $(t.id + "_x").hidden = t.value !== PO[3]; });
 
 /* ปุ่มประทับเวลา / กรองเลขไมล์ */
 document.querySelectorAll("[data-t]").forEach(b => b.addEventListener("click", () => $(b.dataset.t).value = new Date().toTimeString().slice(0, 5)));
@@ -182,7 +194,7 @@ $("gps").addEventListener("click", () => {
 $("mapq").addEventListener("click", () => $("loc").value ? openUrl("https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent($("loc").value)) : msg("พิมพ์ชื่อสถานที่ก่อน"));
 $("mapo").addEventListener("click", () => /^https?:/.test($("map").value) ? openUrl($("map").value) : msg("ยังไม่มีลิงก์แผนที่"));
 
-/* รูปสรุปเคส (ไม่มีชื่อ/เลขบัตร/HN) */
+/* รูปสรุปเคส (มีชื่อ/เลขบัตร/HN ใช้เก็บเองเท่านั้น) */
 const esc = v => String(v == null ? "" : v).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const kv = (k, v) => v ? `<tr><td class="k">${k}</td><td>${esc(v)}</td></tr>` : "";
 const thDate = v => { const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(v || ""); return m ? `${m[3]}/${m[2]}/${+m[1] + 543}` : v; };
@@ -194,12 +206,14 @@ function cardHTML(d) {
   h += `<h3>ผู้ออกปฏิบัติการ</h3><table>${kv("เจ้าหน้าที่", team)}</table>`;
   h += `<h3>สถานที่ / นำส่ง</h3><table>${kv("สถานที่", d.loc)}${kv("นำส่ง", d.dest)}</table>`;
   h += `<h3>เวลา / เลขไมล์</h3><table>${kv("รับแจ้ง", d.t_call)}${kv("ออกจาก รพ.", tm("t_depart", "m_depart"))}${kv("ถึงเหตุ", tm("t_scene", "m_scene"))}${kv("ออกจากเหตุ", d.t_leave)}${kv("ถึง รพ.", tm("t_hosp", "m_hosp"))}${kv("ถึงฐาน", tm("t_base", "m_base"))}</table>`;
-  [1, 2].forEach(n => {
+  let shown = 0;
+  for (let n = 1; d["p" + n + "_name"] !== undefined; n++) {
     const p = k => d["p" + n + "_" + k] || "";
-    if (n === 2 && !(p("name") || p("age") || p("sym") || p("hn"))) return;
-    h += `<h3>ผู้ป่วยรายที่ ${n}</h3><table>${kv("ชื่อ-สกุล", p("name"))}${kv("อายุ", p("age") && p("age") + " ปี")}${kv("HN", p("hn"))}${kv("อาการ", p("sym"))}</table>`;
-  });
-  h += `<h3>ประเภทเหตุ</h3><table>${kv("เหตุการณ์", ev)}</table></div><div class="ft">มีชื่อและ HN ผู้ป่วย · เก็บเป็นความลับ · สร้างเมื่อ ${new Date().toLocaleString("th-TH", {dateStyle: "short", timeStyle: "short"})}</div>`;
+    if (!["name", "cid", "age", "hn", "sym", "sex"].some(k => p(k))) continue;
+    shown++;
+    h += `<h3>ผู้ป่วยรายที่ ${shown}</h3><table>${kv("ชื่อ-สกุล", p("name"))}${kv("เลขบัตร ปชช.", p("cid"))}${kv("อายุ", p("age") && p("age") + " ปี")}${kv("HN", p("hn"))}${kv("อาการ", p("sym"))}</table>`;
+  }
+  h += `<h3>ประเภทเหตุ</h3><table>${kv("เหตุการณ์", ev)}</table></div><div class="ft">มีชื่อ เลขบัตร และ HN ผู้ป่วย · เก็บเป็นความลับ · สร้างเมื่อ ${new Date().toLocaleString("th-TH", {dateStyle: "short", timeStyle: "short"})}</div>`;
   return h;
 }
 async function showSummary(d) {
@@ -220,13 +234,15 @@ async function showSummary(d) {
 $("newcase").addEventListener("click", () => location.reload());
 $("again").addEventListener("click", () => {
   const KEEP = ["date", "staff1", "staff2", "staff3", "plate"];
+  const prev = ["m_base", "m_hosp", "m_scene", "m_depart"].map(id => $(id).value).find(Boolean) || "";   // ไมล์ล่าสุดของเคสก่อน
+  [...$("pts").children].slice(1).forEach(el => el.remove()); np = 1; $("addp").textContent = "＋ เพิ่มผู้ป่วยรายที่ 2";
   document.querySelectorAll("input[id],select[id],textarea[id]").forEach(e => { if (!KEEP.includes(e.id)) e.value = ""; });
   document.querySelectorAll('input[name="ev"],input[name="dest"]').forEach(c => c.checked = false);
   document.querySelectorAll('input[id$="_x"]').forEach(x => x.hidden = true);
-  document.querySelector("details").open = false;
+  $("m_depart").value = prev;
   $("ov").style.display = "none"; document.body.style.overflow = "";
   $("save").disabled = false; window.scrollTo(0, 0);
-  msg("พร้อมบันทึกเคสซ้อน — ข้อมูลเหตุเดิมถูกล้างแล้ว", 1);
+  msg(prev ? `พร้อมบันทึกเคสซ้อน · ไมล์ออกต่อจากเคสก่อน (${prev})` : "พร้อมบันทึกเคสซ้อน", 1);
 });
 
 /* บันทึก */
