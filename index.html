@@ -28,6 +28,18 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 .t button{flex:0 0 112px;padding:10px 4px;background:var(--c);border-color:var(--c);color:#fff;font-weight:600}
 .t input[type=time]{flex:1;min-width:0}
 .t .m{flex:0 0 100px;width:100px;text-align:center;letter-spacing:.06em}
+.t button{flex:0 0 128px;font-size:14px}
+.sy{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.sy .sc{min-height:36px;padding:6px 12px;border-radius:999px;font-size:14px}
+.sy .sc.on{background:var(--c);border-color:var(--c);color:#fff;font-weight:600}
+.es{margin-top:6px;min-height:36px;font-size:13px;color:var(--mute);background:transparent}
+#ed{position:fixed;inset:0;z-index:30;background:rgba(10,18,30,.7);display:none;align-items:flex-end;justify-content:center}
+#ed .box{background:var(--card);width:100%;max-width:520px;max-height:85vh;overflow:auto;border-radius:16px 16px 0 0;padding:6px 14px calc(14px + env(safe-area-inset-bottom))}
+#ed .it{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line)}
+#ed .it button{min-height:36px;padding:4px 12px;color:var(--red);border-color:var(--red);background:transparent}
+#ed .empty{color:var(--mute);font-size:14px}
+#ed .add{display:flex;gap:8px;margin:12px 0 8px}
+#ed .add button{flex:0 0 80px;background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chips label{margin:0;color:var(--ink);font-size:15px}
 .chips input{display:none}
@@ -61,7 +73,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 </style>
 </head>
 <body>
-<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.2</p></header>
+<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.5</p></header>
 <div id="msg"></div>
 
 <section class="card" style="--c:var(--red)">
@@ -70,7 +82,9 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
   <label>ประเภททีม</label>
   <div class="chips" id="mode" style="--c:var(--red)"></div>
   <label>เจ้าหน้าที่</label>
-  <input id="staff1" placeholder="1." style="margin-bottom:8px"><input id="staff2" placeholder="2." style="margin-bottom:8px"><input id="staff3" placeholder="3.">
+  <select id="staff1" style="margin-bottom:8px"></select><select id="staff2" style="margin-bottom:8px"></select><select id="staff3"></select>
+  <p id="staffhint" style="margin:6px 0 0;font-size:13px;color:var(--mute)" hidden>ยังไม่มีรายชื่อ กดปุ่มด้านล่างเพื่อเพิ่มชื่อสมาชิก</p>
+  <button type="button" id="edstaff" style="margin-top:8px;width:100%;color:var(--blue);border-color:var(--blue);background:transparent">✏️ เพิ่ม/ลดรายชื่อเจ้าหน้าที่</button>
 </section>
 
 <section class="card" style="--c:var(--amber)">
@@ -91,6 +105,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 
 <section class="card" style="--c:var(--blue)">
   <h2>เวลา และเลขไมล์</h2>
+  <p style="margin:2px 0 6px;font-size:13px;color:var(--mute)">แตะปุ่มสี = ใส่เวลาปัจจุบันทันที</p>
   <div id="times"></div>
 </section>
 
@@ -106,6 +121,15 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
   <h2>ทะเบียนรถ</h2>
   <input id="plate" aria-label="ทะเบียนรถ">
 </section>
+
+<button type="button" id="clr" style="width:100%;margin:0 0 12px;color:var(--mute);background:transparent">🗑 ล้างฟอร์มทั้งหมด</button>
+
+<div id="ed"><div class="box">
+  <h2 id="edt" style="--c:var(--blue)"></h2>
+  <div id="edl"></div>
+  <div class="add"><input class="edi" maxlength="40" placeholder="พิมพ์แล้วกดเพิ่ม"><button type="button" id="eda">เพิ่ม</button></div>
+  <button type="button" id="edx" style="width:100%">เสร็จ</button>
+</div></div>
 
 <div id="ov">
   <p class="tip" id="tip">กำลังสร้างรูปสรุป...</p>
@@ -141,12 +165,75 @@ chips("ev", "checkbox", ["อุบัติเหตุจราจร", "อ�
 
 /* เวลา: [id เวลา, ชื่อ, id เลขไมล์ (ถ้ามี)] */
 const TM = [["t_call","รับแจ้งจากศูนย์"],["t_depart","ออกจาก รพ.","m_depart"],["t_scene","ถึงเหตุ","m_scene"],["t_leave","ออกจากเหตุ"],["t_hosp","ถึง รพ.","m_hosp"],["t_base","ถึงฐาน","m_base"]];
-$("times").innerHTML = TM.map(([t,l,m]) => `<div class="t"><button type="button" data-t="${t}">${l}</button><input type="time" id="${t}" aria-label="เวลา${l}">${m ? `<input class="m" id="${m}" inputmode="numeric" maxlength="6" placeholder="เลขไมล์" aria-label="เลขไมล์${l}">` : ""}</div>`).join("");
+$("times").innerHTML = TM.map(([t,l,m]) => `<div class="t"><button type="button" data-t="${t}">⏱ ${l}</button><input type="time" id="${t}" aria-label="เวลา${l}">${m ? `<input class="m" id="${m}" inputmode="numeric" maxlength="6" placeholder="เลขไมล์" aria-label="เลขไมล์${l}">` : ""}</div>`).join("");
 const MILES = TM.filter(x => x[2]).map(x => x[2]);
 
+/* ===== รายการที่เพิ่ม/ลดได้ (เก็บในเครื่องนี้) ===== */
+const esc = v => String(v == null ? "" : v).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const LS = {
+  get: (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } },
+  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  del: k => { try { localStorage.removeItem(k); } catch (e) {} }
+};
+const SYM_DEF = ["เจ็บหน้าอก", "หายใจลำบาก", "หมดสติ", "ชัก", "ปวดท้อง", "อ่อนแรง/พูดไม่ชัด", "บาดเจ็บ", "ไข้"];
+const TX_DEF = ["ให้ออกซิเจน", "ติดตามสัญญาณชีพ", "ให้น้ำเกลือ", "ห้ามเลือด", "ดามกระดูก", "ทำแผล", "CPR", "ใช้ AED"];
+const LK = {staff: "ems_staff", sym: "ems_sym", tx: "ems_tx"};
+let staffList = LS.get(LK.staff, []), symList = LS.get(LK.sym, SYM_DEF), txList = LS.get(LK.tx, TX_DEF);
+const listOf = k => k === "staff" ? staffList : k === "sym" ? symList : txList;
+function setVal(el, v) { if (el.tagName === "SELECT" && v && ![...el.options].some(o => o.value === v)) el.add(new Option(v, v)); el.value = v; }
+function fillStaff() {
+  ["staff1", "staff2", "staff3"].forEach((id, i) => {
+    const sel = $(id), cur = sel.value;
+    sel.innerHTML = `<option value="">${i + 1}. เลือกชื่อ</option>` + staffList.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
+    if (cur) setVal(sel, cur);
+  });
+  $("staffhint").hidden = staffList.length > 0;
+}
+function markSym(n) {
+  document.querySelectorAll(`.sy[data-p="${n}"]`).forEach(box => {
+    const ta = $("p" + n + "_" + box.dataset.k); if (!ta) return;
+    const parts = ta.value.split(/\s*,\s*/);
+    box.querySelectorAll(".sc").forEach(b => b.classList.toggle("on", parts.includes(b.dataset.s)));
+  });
+}
+function renderSym() {
+  document.querySelectorAll(".sy").forEach(box => {
+    box.innerHTML = listOf(box.dataset.k).map(t => `<button type="button" class="sc" data-s="${esc(t)}">${esc(t)}</button>`).join("");
+    markSym(box.dataset.p);
+  });
+}
+function toggleSym(n, k, term) {
+  const ta = $("p" + n + "_" + k), parts = ta.value.split(/\s*,\s*/).filter(Boolean), i = parts.indexOf(term);
+  if (i >= 0) parts.splice(i, 1); else parts.push(term);
+  ta.value = parts.join(", "); markSym(n);
+}
+let edKind = "";
+const ED_TITLE = {staff: "รายชื่อเจ้าหน้าที่", sym: "กลุ่มอาการ", tx: "กลุ่มการรักษา"};
+const curList = () => listOf(edKind);
+function drawEd() {
+  $("edl").innerHTML = curList().map((t, i) => `<div class="it"><span>${esc(t)}</span><button type="button" data-rm="${i}">ลบ</button></div>`).join("") || '<p class="empty">ยังไม่มีรายการ</p>';
+}
+function openEd(kind) { edKind = kind; $("edt").textContent = ED_TITLE[kind]; drawEd(); $("ed").style.display = "flex"; }
+function saveList() { LS.set(LK[edKind], curList()); if (edKind === "staff") fillStaff(); else renderSym(); }
+function addItem() {
+  const inp = document.querySelector("#ed .edi"), v = inp.value.trim().slice(0, 40), L = curList();
+  if (!v) return;
+  if (!L.includes(v)) { if (L.length >= 40) { inp.value = ""; inp.placeholder = "เต็ม 40 รายการแล้ว ลบอันเดิมก่อน"; return; } L.push(v); saveList(); drawEd(); }
+  inp.value = "";
+}
+$("eda").addEventListener("click", addItem);
+document.querySelector("#ed .edi").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addItem(); } });
+$("edl").addEventListener("click", e => { const b = e.target.closest("[data-rm]"); if (!b) return; curList().splice(+b.dataset.rm, 1); saveList(); drawEd(); });
+$("edx").addEventListener("click", () => $("ed").style.display = "none");
+$("ed").addEventListener("click", e => { if (e.target === $("ed")) $("ed").style.display = "none"; });
+$("edstaff").addEventListener("click", () => openEd("staff"));
+document.addEventListener("click", e => {
+  const c = e.target.closest(".sc"); if (c) toggleSym(c.parentNode.dataset.p, c.parentNode.dataset.k, c.dataset.s);
+  const es = e.target.closest(".es"); if (es) openEd(es.dataset.k);
+});
+document.addEventListener("input", e => { const m = /^p(\d+)_(?:sym|tx)$/.exec(e.target.id || ""); if (m) markSym(m[1]); });
+
 /* ผู้ป่วย */
-const PROC = [["air","ทางเดินหายใจ"],["bleed","การห้ามเลือด"],["fluid","การให้สารน้ำ"],["splint","การดามกระดูก"]];
-const PO = ["ไม่จำเป็น","ไม่ได้ทำ","ทำและเหมาะสม","ทำแต่ไม่เหมาะสม"];
 const op = (a, b) => "<option></option>" + Array.from({length: b-a+1}, (_, i) => `<option>${a+i}</option>`).join("");
 const f = (n, k, l, extra = "") => `<div><label for="p${n}_${k}">${l}</label><input id="p${n}_${k}" ${extra}></div>`;
 const pt = n => `
@@ -154,14 +241,13 @@ const pt = n => `
 <div class="g2"><div><label for="p${n}_sex">เพศ</label><select id="p${n}_sex"><option></option><option>ชาย</option><option>หญิง</option></select></div>${f(n,"age","อายุ (ปี)",'type="number" inputmode="numeric"')}</div>
 <label for="p${n}_cid">เลขบัตรประชาชน</label><input id="p${n}_cid" inputmode="numeric" maxlength="13">
 ${f(n,"hn","HN")}
-<label for="p${n}_sym">อาการ</label><textarea id="p${n}_sym" rows="2"></textarea>
+<label for="p${n}_sym">อาการ</label><div class="sy" data-p="${n}" data-k="sym"></div><textarea id="p${n}_sym" rows="2" placeholder="แตะกลุ่มอาการด้านบน หรือพิมพ์เพิ่มเอง"></textarea><button type="button" class="es" data-k="sym">✏️ เพิ่ม/ลดกลุ่มอาการ</button>
 <label>V/S</label>
 <div class="fl" style="margin-bottom:8px"><input id="p${n}_bp_s" inputmode="numeric" placeholder="BP บน"><b>/</b><input id="p${n}_bp_d" inputmode="numeric" placeholder="BP ล่าง" style="flex:1;width:auto"></div>
 <div class="g2">${f(n,"p","P",'inputmode="numeric"')}${f(n,"r","R",'inputmode="numeric"')}${f(n,"o2","O2sat",'inputmode="numeric"')}${f(n,"dtx","DTX",'inputmode="numeric"')}</div>
 <label>GCS</label>
 <div class="g3"><div><label for="p${n}_gcs_e">E (1-4)</label><select id="p${n}_gcs_e">${op(1,4)}</select></div><div><label for="p${n}_gcs_v">V (1-5)</label><select id="p${n}_gcs_v">${op(1,5)}</select></div><div><label for="p${n}_gcs_m">M (1-6)</label><select id="p${n}_gcs_m">${op(1,6)}</select></div></div>
-<label for="p${n}_tx">การรักษา</label><textarea id="p${n}_tx" rows="2"></textarea>
-${PROC.map(([k,l]) => `<label for="p${n}_${k}">${l}</label><select class="pr" id="p${n}_${k}"><option></option>${PO.map(o => `<option>${o}</option>`).join("")}</select><input id="p${n}_${k}_x" placeholder="ระบุเหตุผล" hidden style="margin-top:6px">`).join("")}`;
+<label for="p${n}_tx">การรักษา</label><div class="sy" data-p="${n}" data-k="tx"></div><textarea id="p${n}_tx" rows="2" placeholder="แตะกลุ่มการรักษาด้านบน หรือพิมพ์เพิ่มเอง"></textarea><button type="button" class="es" data-k="tx">✏️ เพิ่ม/ลดกลุ่มการรักษา</button>`;
 let np = 0;
 function addPatient() {
   if (np >= 20) { msg("เพิ่มผู้ป่วยได้สูงสุด 20 ราย"); return null; }
@@ -170,12 +256,39 @@ function addPatient() {
   sec.className = "card"; sec.style.setProperty("--c", np === 1 ? "var(--teal)" : "var(--vio)");
   sec.innerHTML = `<h2>ผู้ป่วยรายที่ ${np}</h2>` + pt(np);
   $("pts").appendChild(sec);
+  renderSym();
   $("addp").textContent = `＋ เพิ่มผู้ป่วยรายที่ ${np + 1}`;
   return sec;
 }
 addPatient();
 $("addp").addEventListener("click", () => { const sec = addPatient(); if (sec) sec.scrollIntoView({behavior: "smooth", block: "start"}); });
-document.addEventListener("change", e => { const t = e.target; if (t.classList && t.classList.contains("pr")) $(t.id + "_x").hidden = t.value !== PO[3]; });
+
+/* ฉบับร่างอัตโนมัติ (เก็บในเครื่อง 12 ชม. ล้างทันทีเมื่อบันทึกสำเร็จ) */
+const DK = "ems_draft";
+let dT;
+function saveDraft() {
+  clearTimeout(dT);
+  dT = setTimeout(() => {
+    const vals = {}, checks = {};
+    document.querySelectorAll("input[id],select[id],textarea[id]").forEach(e => vals[e.id] = e.value);
+    ["mode", "dest", "ev"].forEach(n => checks[n] = [...document.querySelectorAll(`input[name="${n}"]:checked`)].map(c => c.value));
+    LS.set(DK, {t: Date.now(), np, vals, checks});
+  }, 500);
+}
+["input", "change"].forEach(ev => document.addEventListener(ev, e => { if (!e.target.closest("#ed")) saveDraft(); }));
+document.addEventListener("click", e => { if (e.target.closest("button") && !e.target.closest("#ed,#ov,#save,#clr")) saveDraft(); });
+function restoreDraft() {
+  const d = LS.get(DK, null);
+  if (!d || Date.now() - d.t > 12 * 36e5) { LS.del(DK); return; }
+  const has = Object.entries(d.vals || {}).some(([k, v]) => k !== "date" && v) || Object.values(d.checks || {}).some(a => a.length);
+  if (!has) return;
+  while (np < Math.min(d.np || 1, 20)) addPatient();
+  Object.entries(d.vals).forEach(([id, v]) => { const el = $(id); if (el && v !== undefined) setVal(el, v); });
+  Object.entries(d.checks || {}).forEach(([n, arr]) => document.querySelectorAll(`input[name="${n}"]`).forEach(c => c.checked = arr.includes(c.value)));
+  document.querySelectorAll(".sy").forEach(b => markSym(b.dataset.p));
+  msg("กู้คืนข้อมูลที่กรอกค้างไว้แล้ว", 1);
+}
+$("clr").addEventListener("click", () => { if (confirm("ล้างข้อมูลที่กรอกทั้งหมด?")) { clearTimeout(dT); LS.del(DK); location.reload(); } });
 
 /* ปุ่มประทับเวลา / กรองเลขไมล์ */
 document.querySelectorAll("[data-t]").forEach(b => b.addEventListener("click", () => $(b.dataset.t).value = new Date().toTimeString().slice(0, 5)));
@@ -195,7 +308,6 @@ $("mapq").addEventListener("click", () => $("loc").value ? openUrl("https://www.
 $("mapo").addEventListener("click", () => /^https?:/.test($("map").value) ? openUrl($("map").value) : msg("ยังไม่มีลิงก์แผนที่"));
 
 /* รูปสรุปเคส (มีชื่อ/เลขบัตร/HN ใช้เก็บเองเท่านั้น) */
-const esc = v => String(v == null ? "" : v).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const kv = (k, v) => v ? `<tr><td class="k">${k}</td><td>${esc(v)}</td></tr>` : "";
 const fmtCid = v => /^\d{13}$/.test(v) ? v.replace(/^(\d)(\d{4})(\d{5})(\d\d)(\d)$/, "$1-$2-$3-$4-$5") : v;
 const thDate = v => { const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(v || ""); return m ? `${m[3]}/${m[2]}/${+m[1] + 543}` : v; };
@@ -239,8 +351,7 @@ $("again").addEventListener("click", () => {
   [...$("pts").children].slice(1).forEach(el => el.remove()); np = 1; $("addp").textContent = "＋ เพิ่มผู้ป่วยรายที่ 2";
   document.querySelectorAll("input[id],select[id],textarea[id]").forEach(e => { if (!KEEP.includes(e.id)) e.value = ""; });
   document.querySelectorAll('input[name="ev"],input[name="dest"]').forEach(c => c.checked = false);
-  document.querySelectorAll('input[id$="_x"]').forEach(x => x.hidden = true);
-  $("m_depart").value = prev;
+  $("m_depart").value = prev; markSym(1);
   $("ov").style.display = "none"; document.body.style.overflow = "";
   $("save").disabled = false; window.scrollTo(0, 0);
   msg(prev ? `พร้อมบันทึกเคสซ้อน · ไมล์ออกต่อจากเคสก่อน (${prev})` : "พร้อมบันทึกเคสซ้อน", 1);
@@ -258,11 +369,13 @@ $("save").addEventListener("click", async () => {
   data.ev = [...document.querySelectorAll('input[name="ev"]:checked')].map(c => c.value).join(", ");
   try {
     await fetch(GAS_URL, {method: "POST", mode: "no-cors", headers: {"Content-Type": "text/plain"}, body: JSON.stringify({idToken: liff.getIDToken(), data})});
+    clearTimeout(dT); LS.del(DK);
     msg("บันทึกแล้ว ✓", 1); showSummary(data);
   } catch (e) { msg("บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง"); $("save").disabled = false; }
 });
 
 $("date").value = new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
+fillStaff(); restoreDraft();
 liff.init({liffId: LIFF_ID}).then(async () => {
   if (!liff.isLoggedIn()) return liff.login();
   
