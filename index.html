@@ -61,7 +61,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 </style>
 </head>
 <body>
-<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.0</p></header>
+<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.2</p></header>
 <div id="msg"></div>
 
 <section class="card" style="--c:var(--red)">
@@ -120,7 +120,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 <script>
 /* ============ ✏️ จุดที่ต้องแก้ (3 ที่) ============ */
 const LIFF_ID = "2012018268-3LN2vNKu";                              // 1) LIFF ID จาก LINE Developers
-const GAS_URL = "https://script.google.com/macros/s/AKfycbwdufriI5q0kvNuj5N4NridbH2v8lS9PyGgttz4Rz6sZAJE-iIU4WXf4cTrs9vQhZ0n/exec";     // 2) Web app URL จาก Apps Script
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwyPmBRUqOolE2DWG9nxRmFLaVrkttRYffbHqiAT4WALMJ2heShRkNPFjcCpK_drnQh/exec";     // 2) Web app URL จาก Apps Script
 const UNIT    = "EMS CHA-AM";                                       // 3) ชื่อหน่วย
 /* ================================================= */
 
@@ -197,6 +197,7 @@ $("mapo").addEventListener("click", () => /^https?:/.test($("map").value) ? open
 /* รูปสรุปเคส (มีชื่อ/เลขบัตร/HN ใช้เก็บเองเท่านั้น) */
 const esc = v => String(v == null ? "" : v).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const kv = (k, v) => v ? `<tr><td class="k">${k}</td><td>${esc(v)}</td></tr>` : "";
+const fmtCid = v => /^\d{13}$/.test(v) ? v.replace(/^(\d)(\d{4})(\d{5})(\d\d)(\d)$/, "$1-$2-$3-$4-$5") : v;
 const thDate = v => { const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(v || ""); return m ? `${m[3]}/${m[2]}/${+m[1] + 543}` : v; };
 function cardHTML(d) {
   const team = [d.staff1, d.staff2, d.staff3].filter(Boolean).join(", ");
@@ -211,7 +212,7 @@ function cardHTML(d) {
     const p = k => d["p" + n + "_" + k] || "";
     if (!["name", "cid", "age", "hn", "sym", "sex"].some(k => p(k))) continue;
     shown++;
-    h += `<h3>ผู้ป่วยรายที่ ${shown}</h3><table>${kv("ชื่อ-สกุล", p("name"))}${kv("เลขบัตร ปชช.", p("cid"))}${kv("อายุ", p("age") && p("age") + " ปี")}${kv("HN", p("hn"))}${kv("อาการ", p("sym"))}</table>`;
+    h += `<h3>ผู้ป่วยรายที่ ${shown}</h3><table>${kv("ชื่อ-สกุล", p("name"))}${kv("เลขบัตร ปชช.", fmtCid(p("cid")))}${kv("อายุ", p("age") && p("age") + " ปี")}${kv("HN", p("hn"))}${kv("อาการ", p("sym"))}</table>`;
   }
   h += `<h3>ประเภทเหตุ</h3><table>${kv("เหตุการณ์", ev)}</table></div><div class="ft">มีชื่อ เลขบัตร และ HN ผู้ป่วย · เก็บเป็นความลับ · สร้างเมื่อ ${new Date().toLocaleString("th-TH", {dateStyle: "short", timeStyle: "short"})}</div>`;
   return h;
