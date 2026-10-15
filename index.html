@@ -73,7 +73,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 </style>
 </head>
 <body>
-<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.5</p></header>
+<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.6</p></header>
 <div id="msg"></div>
 
 <section class="card" style="--c:var(--red)">
@@ -81,10 +81,14 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
   <label for="date">Date</label><input id="date" type="date">
   <label>ประเภททีม</label>
   <div class="chips" id="mode" style="--c:var(--red)"></div>
-  <label>เจ้าหน้าที่</label>
-  <select id="staff1" style="margin-bottom:8px"></select><select id="staff2" style="margin-bottom:8px"></select><select id="staff3"></select>
+  <label>เจ้าหน้าที่คนที่ 1-2</label>
+  <select id="staff1" style="margin-bottom:8px"></select><select id="staff2"></select>
   <p id="staffhint" style="margin:6px 0 0;font-size:13px;color:var(--mute)" hidden>ยังไม่มีรายชื่อ กดปุ่มด้านล่างเพื่อเพิ่มชื่อสมาชิก</p>
-  <button type="button" id="edstaff" style="margin-top:8px;width:100%;color:var(--blue);border-color:var(--blue);background:transparent">✏️ เพิ่ม/ลดรายชื่อเจ้าหน้าที่</button>
+  <button type="button" id="edstaff" style="margin-top:8px;width:100%;color:var(--blue);border-color:var(--blue);background:transparent">✏️ เพิ่ม/ลดรายชื่อ (คนที่ 1-2)</button>
+  <label>เจ้าหน้าที่คนที่ 3</label>
+  <select id="staff3"></select>
+  <p id="staffhint3" style="margin:6px 0 0;font-size:13px;color:var(--mute)" hidden>ยังไม่มีรายชื่อ กดปุ่มด้านล่างเพื่อเพิ่มชื่อสมาชิก</p>
+  <button type="button" id="edstaff3" style="margin-top:8px;width:100%;color:var(--blue);border-color:var(--blue);background:transparent">✏️ เพิ่ม/ลดรายชื่อ (คนที่ 3)</button>
 </section>
 
 <section class="card" style="--c:var(--amber)">
@@ -177,17 +181,18 @@ const LS = {
 };
 const SYM_DEF = ["เจ็บหน้าอก", "หายใจลำบาก", "หมดสติ", "ชัก", "ปวดท้อง", "อ่อนแรง/พูดไม่ชัด", "บาดเจ็บ", "ไข้"];
 const TX_DEF = ["ให้ออกซิเจน", "ติดตามสัญญาณชีพ", "ให้น้ำเกลือ", "ห้ามเลือด", "ดามกระดูก", "ทำแผล", "CPR", "ใช้ AED"];
-const LK = {staff: "ems_staff", sym: "ems_sym", tx: "ems_tx"};
-let staffList = LS.get(LK.staff, []), symList = LS.get(LK.sym, SYM_DEF), txList = LS.get(LK.tx, TX_DEF);
-const listOf = k => k === "staff" ? staffList : k === "sym" ? symList : txList;
+const LK = {staff: "ems_staff", staff3: "ems_staff3", sym: "ems_sym", tx: "ems_tx"};
+let staffList = LS.get(LK.staff, []), staff3List = LS.get(LK.staff3, []), symList = LS.get(LK.sym, SYM_DEF), txList = LS.get(LK.tx, TX_DEF);
+const listOf = k => k === "staff" ? staffList : k === "staff3" ? staff3List : k === "sym" ? symList : txList;
 function setVal(el, v) { if (el.tagName === "SELECT" && v && ![...el.options].some(o => o.value === v)) el.add(new Option(v, v)); el.value = v; }
 function fillStaff() {
   ["staff1", "staff2", "staff3"].forEach((id, i) => {
     const sel = $(id), cur = sel.value;
-    sel.innerHTML = `<option value="">${i + 1}. เลือกชื่อ</option>` + staffList.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
+    sel.innerHTML = `<option value="">${i + 1}. เลือกชื่อ</option>` + (i === 2 ? staff3List : staffList).map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
     if (cur) setVal(sel, cur);
   });
   $("staffhint").hidden = staffList.length > 0;
+  $("staffhint3").hidden = staff3List.length > 0;
 }
 function markSym(n) {
   document.querySelectorAll(`.sy[data-p="${n}"]`).forEach(box => {
@@ -208,13 +213,13 @@ function toggleSym(n, k, term) {
   ta.value = parts.join(", "); markSym(n);
 }
 let edKind = "";
-const ED_TITLE = {staff: "รายชื่อเจ้าหน้าที่", sym: "กลุ่มอาการ", tx: "กลุ่มการรักษา"};
+const ED_TITLE = {staff: "รายชื่อเจ้าหน้าที่ (คนที่ 1-2)", staff3: "รายชื่อเจ้าหน้าที่ (คนที่ 3)", sym: "กลุ่มอาการ", tx: "กลุ่มการรักษา"};
 const curList = () => listOf(edKind);
 function drawEd() {
   $("edl").innerHTML = curList().map((t, i) => `<div class="it"><span>${esc(t)}</span><button type="button" data-rm="${i}">ลบ</button></div>`).join("") || '<p class="empty">ยังไม่มีรายการ</p>';
 }
 function openEd(kind) { edKind = kind; $("edt").textContent = ED_TITLE[kind]; drawEd(); $("ed").style.display = "flex"; }
-function saveList() { LS.set(LK[edKind], curList()); if (edKind === "staff") fillStaff(); else renderSym(); }
+function saveList() { LS.set(LK[edKind], curList()); if (edKind === "staff" || edKind === "staff3") fillStaff(); else renderSym(); }
 function addItem() {
   const inp = document.querySelector("#ed .edi"), v = inp.value.trim().slice(0, 40), L = curList();
   if (!v) return;
@@ -227,6 +232,7 @@ $("edl").addEventListener("click", e => { const b = e.target.closest("[data-rm]"
 $("edx").addEventListener("click", () => $("ed").style.display = "none");
 $("ed").addEventListener("click", e => { if (e.target === $("ed")) $("ed").style.display = "none"; });
 $("edstaff").addEventListener("click", () => openEd("staff"));
+$("edstaff3").addEventListener("click", () => openEd("staff3"));
 document.addEventListener("click", e => {
   const c = e.target.closest(".sc"); if (c) toggleSym(c.parentNode.dataset.p, c.parentNode.dataset.k, c.dataset.s);
   const es = e.target.closest(".es"); if (es) openEd(es.dataset.k);
