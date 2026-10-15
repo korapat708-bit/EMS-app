@@ -6,6 +6,7 @@
 <title>บันทึกการออกปฏิบัติการ EMS CHA-AM</title>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600;700&family=Noto+Sans+Thai:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root{--bg:#eaf0f9;--card:#fff;--ink:#14243b;--mute:#5f6f86;--line:#d3dcea;--in:#f4f7fc;--red:#e5173f;--blue:#1f6feb;--teal:#0e9f8a;--amber:#e8a200;--vio:#7a4de8;--ok:#0a8f5c}
 @media(prefers-color-scheme:dark){:root{--bg:#0d1522;--card:#16212f;--ink:#e8eef8;--mute:#93a3bb;--line:#2a3a50;--in:#0f1a28;--red:#ff5470;--blue:#5b9bff;--teal:#2ed3b9;--amber:#ffc04d;--vio:#a58bff;--ok:#3ccf91}}
@@ -37,6 +38,26 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 #save{position:fixed;left:12px;right:12px;bottom:12px;background:linear-gradient(135deg,#e5173f,#b00c3a);border:0;color:#fff;font:600 17px Prompt,sans-serif;min-height:54px;box-shadow:0 4px 12px rgba(229,23,63,.4)}
 #save:disabled{opacity:.5}
 #msg{position:fixed;left:16px;right:16px;bottom:78px;padding:10px 14px;border-radius:12px;background:var(--ink);color:var(--bg);font-size:14px;display:none;z-index:5}
+#ov{position:fixed;inset:0;z-index:20;background:rgba(10,18,30,.92);overflow:auto;display:none;padding:14px 12px 24px;text-align:center}
+#ov .tip{color:#fff;font-size:14px;margin:0 0 10px}
+#ov img{width:100%;max-width:520px;border-radius:10px;display:none;margin:0 auto}
+#ov .bar{display:flex;gap:8px;position:sticky;bottom:0;z-index:2;margin:12px -12px -24px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#0a121e;border-top:1px solid #2a3a50}
+#ov .bar button{max-width:260px}
+#ov .bar button{flex:1;font-weight:600}
+#card{width:360px;margin:0 auto;background:#fff;color:#14243b;text-align:left;font:13px/1.45 "Noto Sans Thai",sans-serif;border-radius:10px;overflow:hidden}
+#card .hd{background:linear-gradient(135deg,#e5173f,#a80b38 55%,#1f3b8f);color:#fff;padding:12px 14px}
+#card .hd b{font:700 16px Prompt,sans-serif;display:block}
+#card .hd span{font-size:12px;opacity:.9}
+#card .dm{margin-top:8px;display:flex;gap:8px;align-items:center}
+#card .dm i{font-style:normal;background:rgba(255,255,255,.2);border-radius:999px;padding:2px 12px;font:600 14px Prompt,sans-serif}
+#card .dm i.md{background:#fff;color:#a80b38}
+#card .dest{margin-top:8px;background:#fff;color:#14243b;border-radius:8px;padding:5px 10px;font:600 15px Prompt,sans-serif}
+#card .bd{padding:8px 14px 12px}
+#card h3{font:600 14px Prompt,sans-serif;color:#e5173f;margin:10px 0 3px;border-bottom:1.5px solid #f0c9d1;padding-bottom:2px}
+#card table{width:100%;border-collapse:collapse}
+#card td{padding:2px 0;vertical-align:top;word-break:break-word}
+#card td.k{width:34%;color:#5f6f86;padding-right:8px}
+#card .ft{font-size:11px;color:#5f6f86;padding:0 14px 10px}
 </style>
 </head>
 <body>
@@ -73,6 +94,11 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
   <div id="times"></div>
 </section>
 
+<section class="card" style="--c:var(--blue)">
+  <h2>นำส่ง รพ.</h2>
+  <div class="chips" id="dest" style="--c:var(--blue)"></div>
+</section>
+
 <section class="card" style="--c:var(--teal)"><h2>ผู้ป่วยรายที่ 1</h2><div id="pt1"></div></section>
 <details class="card" style="--c:var(--vio)"><summary>＋ ผู้ป่วยรายที่ 2 (ถ้ามี)</summary><div id="pt2"></div></details>
 
@@ -81,12 +107,20 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
   <input id="plate" aria-label="ทะเบียนรถ">
 </section>
 
+<div id="ov">
+  <p class="tip" id="tip">กำลังสร้างรูปสรุป...</p>
+  <div id="card"></div>
+  <img id="img" alt="รูปสรุปเคส">
+  <p class="tip" style="margin-top:12px;font-size:12px;opacity:.8">เคสซ้อน = ล้างข้อมูลเหตุเดิม แต่คงวันที่ ALS/BLS ชื่อเจ้าหน้าที่ และทะเบียนรถไว้</p>
+  <div class="bar"><button type="button" id="again" style="background:var(--blue);border-color:var(--blue);color:#fff">＋ เคสซ้อน</button><button type="button" id="newcase">เสร็จ</button></div>
+</div>
+
 <button id="save" type="button">บันทึกเคส</button>
 
 <script>
 /* ============ ✏️ จุดที่ต้องแก้ (3 ที่) ============ */
 const LIFF_ID = "2012018268-3LN2vNKu";                              // 1) LIFF ID จาก LINE Developers
-const GAS_URL = "https://script.google.com/macros/s/AKfycbySFftw_cF99LwK56wDNUS1pz-gOD_POrNPuZoWzEF9c4S_s7hDmP-Nb_E5uYY2S1jZ/exec";     // 2) Web app URL จาก Apps Script
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzzfMQ7YG2j93gW-aTlmEW_bgKW5nnrU5WgGbbzAcsbYCTDM867KB4cJD99wdbjgX44/exec";     // 2) Web app URL จาก Apps Script
 const UNIT    = "EMS CHA-AM";                                       // 3) ชื่อหน่วย
 /* ================================================= */
 
@@ -97,6 +131,12 @@ let toastT;
 const msg = (t, ok) => { const m = $("msg"); m.textContent = t; m.style.display = "block"; m.style.background = ok ? "var(--ok)" : "var(--red)"; m.style.color = "#fff"; clearTimeout(toastT); toastT = setTimeout(() => m.style.display = "none", 6000); };
 
 chips("mode", "radio", ["ALS", "BLS"]);
+chips("dest", "radio", ["รพ.ชะอำ", "รพ.หัวหิน", "รพ.กรุงเทพหัวหิน", "รพ.ซานเปาโลหัวหิน"]);
+/* กดซ้ำที่ตัวเลือกเดิม = ยกเลิกการเลือก */
+document.querySelectorAll('input[name="dest"]').forEach(r => {
+  r.addEventListener("mousedown", () => r.dataset.was = r.checked ? "1" : "");
+  r.addEventListener("click", () => { if (r.dataset.was) r.checked = false; });
+});
 chips("ev", "checkbox", ["อุบัติเหตุจราจร", "อุบัติเหตุทั่วไป", "ป่วยฉุกเฉิน", "กรณี ว.14", "ไม่มีเหตุ", "หน่วยงานอื่นนำส่ง"].map(v => [v, "var(--amber)", 1]));
 
 /* เวลา: [id เวลา, ชื่อ, id เลขไมล์ (ถ้ามี)] */
@@ -142,6 +182,53 @@ $("gps").addEventListener("click", () => {
 $("mapq").addEventListener("click", () => $("loc").value ? openUrl("https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent($("loc").value)) : msg("พิมพ์ชื่อสถานที่ก่อน"));
 $("mapo").addEventListener("click", () => /^https?:/.test($("map").value) ? openUrl($("map").value) : msg("ยังไม่มีลิงก์แผนที่"));
 
+/* รูปสรุปเคส (ไม่มีชื่อ/เลขบัตร/HN) */
+const esc = v => String(v == null ? "" : v).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const kv = (k, v) => v ? `<tr><td class="k">${k}</td><td>${esc(v)}</td></tr>` : "";
+const thDate = v => { const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(v || ""); return m ? `${m[3]}/${m[2]}/${+m[1] + 543}` : v; };
+function cardHTML(d) {
+  const team = [d.staff1, d.staff2, d.staff3].filter(Boolean).join(", ");
+  const ev = [d.ev, d.ev_other].filter(Boolean).join(", ");
+  const tm = (t, m) => [d[t], d[m] ? "ไมล์ " + d[m] : ""].filter(Boolean).join("  ·  ");
+  let h = `<div class="hd"><b>สรุปการออกปฏิบัติการ</b><span>${esc(UNIT)}</span><div class="dm"><i>${esc(thDate(d.date))}</i>${d.mode ? `<i class="md">${esc(d.mode)}</i>` : ""}</div>${d.dest ? `<div class="dest">นำส่ง: ${esc(d.dest)}</div>` : ""}</div><div class="bd">`;
+  h += `<h3>ผู้ออกปฏิบัติการ</h3><table>${kv("เจ้าหน้าที่", team)}</table>`;
+  h += `<h3>สถานที่ / นำส่ง</h3><table>${kv("สถานที่", d.loc)}${kv("นำส่ง", d.dest)}</table>`;
+  h += `<h3>เวลา / เลขไมล์</h3><table>${kv("รับแจ้ง", d.t_call)}${kv("ออกจาก รพ.", tm("t_depart", "m_depart"))}${kv("ถึงเหตุ", tm("t_scene", "m_scene"))}${kv("ออกจากเหตุ", d.t_leave)}${kv("ถึง รพ.", tm("t_hosp", "m_hosp"))}${kv("ถึงฐาน", tm("t_base", "m_base"))}</table>`;
+  [1, 2].forEach(n => {
+    const p = k => d["p" + n + "_" + k] || "";
+    if (n === 2 && !(p("name") || p("age") || p("sym") || p("hn"))) return;
+    h += `<h3>ผู้ป่วยรายที่ ${n}</h3><table>${kv("ชื่อ-สกุล", p("name"))}${kv("อายุ", p("age") && p("age") + " ปี")}${kv("HN", p("hn"))}${kv("อาการ", p("sym"))}</table>`;
+  });
+  h += `<h3>ประเภทเหตุ</h3><table>${kv("เหตุการณ์", ev)}</table></div><div class="ft">มีชื่อและ HN ผู้ป่วย · เก็บเป็นความลับ · สร้างเมื่อ ${new Date().toLocaleString("th-TH", {dateStyle: "short", timeStyle: "short"})}</div>`;
+  return h;
+}
+async function showSummary(d) {
+  const ov = $("ov"), card = $("card"), img = $("img");
+  card.innerHTML = cardHTML(d); card.style.display = "block"; img.style.display = "none";
+  $("tip").textContent = "กำลังสร้างรูปสรุป...";
+  ov.style.display = "block"; ov.scrollTop = 0; document.body.style.overflow = "hidden";
+  try {
+    await document.fonts.ready;
+    const cv = await html2canvas(card, {scale: 3, backgroundColor: "#ffffff", useCORS: true, scrollX: 0, scrollY: 0});
+    img.src = cv.toDataURL("image/png");
+    img.style.display = "block"; card.style.display = "none";
+    $("tip").textContent = "บันทึกเคสแล้ว · กดค้างที่รูป แล้วเลือก “บันทึกรูปภาพ”";
+  } catch (e) {
+    $("tip").textContent = "สร้างรูปไม่สำเร็จ · ใช้การแคปหน้าจอแทนได้ (ข้อมูลบันทึกลง Sheet แล้ว)";
+  }
+}
+$("newcase").addEventListener("click", () => location.reload());
+$("again").addEventListener("click", () => {
+  const KEEP = ["date", "staff1", "staff2", "staff3", "plate"];
+  document.querySelectorAll("input[id],select[id],textarea[id]").forEach(e => { if (!KEEP.includes(e.id)) e.value = ""; });
+  document.querySelectorAll('input[name="ev"],input[name="dest"]').forEach(c => c.checked = false);
+  document.querySelectorAll('input[id$="_x"]').forEach(x => x.hidden = true);
+  document.querySelector("details").open = false;
+  $("ov").style.display = "none"; document.body.style.overflow = "";
+  $("save").disabled = false; window.scrollTo(0, 0);
+  msg("พร้อมบันทึกเคสซ้อน — ข้อมูลเหตุเดิมถูกล้างแล้ว", 1);
+});
+
 /* บันทึก */
 let profile = {};
 $("save").addEventListener("click", async () => {
@@ -150,11 +237,11 @@ $("save").addEventListener("click", async () => {
   $("save").disabled = true; msg("กำลังบันทึก...", 1);
   const data = {unit: UNIT};
   document.querySelectorAll("input[id],select[id],textarea[id]").forEach(e => data[e.id] = e.value);
-  ["mode"].forEach(n => { const c = document.querySelector(`input[name="${n}"]:checked`); data[n] = c ? c.value : ""; });
+  ["mode", "dest"].forEach(n => { const c = document.querySelector(`input[name="${n}"]:checked`); data[n] = c ? c.value : ""; });
   data.ev = [...document.querySelectorAll('input[name="ev"]:checked')].map(c => c.value).join(", ");
   try {
     await fetch(GAS_URL, {method: "POST", mode: "no-cors", headers: {"Content-Type": "text/plain"}, body: JSON.stringify({idToken: liff.getIDToken(), data})});
-    msg("บันทึกแล้ว ✓", 1); setTimeout(() => location.reload(), 1200);
+    msg("บันทึกแล้ว ✓", 1); showSummary(data);
   } catch (e) { msg("บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง"); $("save").disabled = false; }
 });
 
