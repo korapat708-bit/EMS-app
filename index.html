@@ -73,7 +73,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 </style>
 </head>
 <body>
-<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.6</p></header>
+<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.7</p></header>
 <div id="msg"></div>
 
 <section class="card" style="--c:var(--red)">
@@ -83,11 +83,11 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
   <div class="chips" id="mode" style="--c:var(--red)"></div>
   <label>เจ้าหน้าที่คนที่ 1-2</label>
   <select id="staff1" style="margin-bottom:8px"></select><select id="staff2"></select>
-  <p id="staffhint" style="margin:6px 0 0;font-size:13px;color:var(--mute)" hidden>ยังไม่มีรายชื่อ กดปุ่มด้านล่างเพื่อเพิ่มชื่อสมาชิก</p>
+  <p id="staffhint" style="margin:6px 0 0;font-size:13px;color:var(--mute)" hidden>ยังไม่มีรายชื่อ กดปุ่มด้านล่างเพื่อเพิ่ม (ทุกเครื่องจะเห็นเหมือนกัน)</p>
   <button type="button" id="edstaff" style="margin-top:8px;width:100%;color:var(--blue);border-color:var(--blue);background:transparent">✏️ เพิ่ม/ลดรายชื่อ (คนที่ 1-2)</button>
   <label>เจ้าหน้าที่คนที่ 3</label>
   <select id="staff3"></select>
-  <p id="staffhint3" style="margin:6px 0 0;font-size:13px;color:var(--mute)" hidden>ยังไม่มีรายชื่อ กดปุ่มด้านล่างเพื่อเพิ่มชื่อสมาชิก</p>
+  <p id="staffhint3" style="margin:6px 0 0;font-size:13px;color:var(--mute)" hidden>ยังไม่มีรายชื่อ กดปุ่มด้านล่างเพื่อเพิ่ม (ทุกเครื่องจะเห็นเหมือนกัน)</p>
   <button type="button" id="edstaff3" style="margin-top:8px;width:100%;color:var(--blue);border-color:var(--blue);background:transparent">✏️ เพิ่ม/ลดรายชื่อ (คนที่ 3)</button>
 </section>
 
@@ -131,6 +131,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 <div id="ed"><div class="box">
   <h2 id="edt" style="--c:var(--blue)"></h2>
   <div id="edl"></div>
+  <p id="edmsg" style="margin:0 0 4px;font-size:13px;color:var(--mute)">รายการนี้ใช้ร่วมกันทุกเครื่อง</p>
   <div class="add"><input class="edi" maxlength="40" placeholder="พิมพ์แล้วกดเพิ่ม"><button type="button" id="eda">เพิ่ม</button></div>
   <button type="button" id="edx" style="width:100%">เสร็จ</button>
 </div></div>
@@ -223,12 +224,12 @@ function saveList() { LS.set(LK[edKind], curList()); if (edKind === "staff" || e
 function addItem() {
   const inp = document.querySelector("#ed .edi"), v = inp.value.trim().slice(0, 40), L = curList();
   if (!v) return;
-  if (!L.includes(v)) { if (L.length >= 40) { inp.value = ""; inp.placeholder = "เต็ม 40 รายการแล้ว ลบอันเดิมก่อน"; return; } L.push(v); saveList(); drawEd(); }
+  if (!L.includes(v)) { if (L.length >= 40) { inp.value = ""; inp.placeholder = "เต็ม 40 รายการแล้ว ลบอันเดิมก่อน"; return; } L.push(v); saveList(); drawEd(); listOp("add", edKind, v); }
   inp.value = "";
 }
 $("eda").addEventListener("click", addItem);
 document.querySelector("#ed .edi").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addItem(); } });
-$("edl").addEventListener("click", e => { const b = e.target.closest("[data-rm]"); if (!b) return; curList().splice(+b.dataset.rm, 1); saveList(); drawEd(); });
+$("edl").addEventListener("click", e => { const b = e.target.closest("[data-rm]"); if (!b) return; const item = curList()[+b.dataset.rm]; curList().splice(+b.dataset.rm, 1); saveList(); drawEd(); listOp("remove", edKind, item); });
 $("edx").addEventListener("click", () => $("ed").style.display = "none");
 $("ed").addEventListener("click", e => { if (e.target === $("ed")) $("ed").style.display = "none"; });
 $("edstaff").addEventListener("click", () => openEd("staff"));
@@ -268,6 +269,61 @@ function addPatient() {
 }
 addPatient();
 $("addp").addEventListener("click", () => { const sec = addPatient(); if (sec) sec.scrollIntoView({behavior: "smooth", block: "start"}); });
+
+/* ===== ซิงก์รายการกับส่วนกลาง (Google Sheet แท็บ "ตั้งค่า") ===== */
+function applyLists(d) {
+  if (!d) return;
+  if (Array.isArray(d.staff)) staffList = d.staff;
+  if (Array.isArray(d.staff3)) staff3List = d.staff3;
+  if (Array.isArray(d.sym)) symList = d.sym;
+  if (Array.isArray(d.tx)) txList = d.tx;
+  Object.keys(LK).forEach(k => LS.set(LK[k], listOf(k)));
+  fillStaff(); renderSym();
+  if ($("ed").style.display === "flex") drawEd();
+}
+function fetchLists() {   // อ่านแบบ JSONP (ไม่ติดข้อจำกัด CORS)
+  return new Promise((resolve, reject) => {
+    const cb = "__ems" + Date.now() + Math.floor(Math.random() * 1e4), sc = document.createElement("script");
+    let t;
+    const done = (v, err) => { clearTimeout(t); delete window[cb]; sc.remove(); err ? reject(err) : resolve(v); };
+    t = setTimeout(() => done(null, new Error("timeout")), 10000);
+    window[cb] = v => done(v);
+    sc.onerror = () => done(null, new Error("load"));
+    sc.src = `${GAS_URL}?action=lists&callback=${cb}&_=${Date.now()}`;
+    document.head.appendChild(sc);
+  });
+}
+async function sendList(body) {
+  await fetch(GAS_URL, {method: "POST", mode: "no-cors", headers: {"Content-Type": "text/plain"}, body: JSON.stringify(Object.assign({idToken: liff.getIDToken()}, body))});
+}
+let pendingOps = 0, synced = false;
+async function listOp(op, kind, value) {
+  const st = $("edmsg"); pendingOps++; st.textContent = "กำลังซิงก์...";
+  try {
+    await sendList({action: "list_" + op, kind, value});
+    await new Promise(r => setTimeout(r, 1300));
+    const data = await fetchLists();
+    const has = (data[kind] || []).includes(value);
+    if (--pendingOps === 0) applyLists(data);
+    st.textContent = (op === "add") === has ? "ซิงก์แล้ว ✓ ทุกเครื่องจะเห็นรายการนี้" : "ซิงก์ไม่สำเร็จ กรุณาลองใหม่";
+  } catch (e) { pendingOps = Math.max(0, pendingOps - 1); st.textContent = "ซิงก์ไม่สำเร็จ (รายการนี้อยู่เฉพาะเครื่องนี้ชั่วคราว)"; }
+}
+async function syncLists() {
+  try {
+    if (!LS.get("ems_migrated", false)) {   // ครั้งแรก: รวมรายการที่เคยเก็บไว้ในเครื่องนี้เข้าส่วนกลางก่อน
+      const snap = {staff: [...staffList], staff3: [...staff3List], sym: [...symList], tx: [...txList]};
+      await sendList({action: "list_merge", lists: snap});
+      await new Promise(r => setTimeout(r, 1500));
+      const data = await fetchLists();
+      if (Object.keys(snap).every(k => snap[k].every(v => (data[k] || []).includes(v)))) { LS.set("ems_migrated", true); applyLists(data); synced = true; }
+      return;
+    }
+    applyLists(await fetchLists()); synced = true;
+  } catch (e) { /* ใช้รายการที่เก็บในเครื่องไปก่อน */ }
+}
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && synced && pendingOps === 0) fetchLists().then(d => { if (pendingOps === 0) applyLists(d); }).catch(() => {});
+});
 
 /* ฉบับร่างอัตโนมัติ (เก็บในเครื่อง 12 ชม. ล้างทันทีเมื่อบันทึกสำเร็จ) */
 const DK = "ems_draft";
@@ -384,7 +440,7 @@ $("date").value = new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).to
 fillStaff(); restoreDraft();
 liff.init({liffId: LIFF_ID}).then(async () => {
   if (!liff.isLoggedIn()) return liff.login();
-  
+  syncLists();
 }).catch(() => msg("เปิดใน LINE เท่านั้น / LIFF ID ยังไม่ถูกตั้งค่า"));
 </script>
 </body>
