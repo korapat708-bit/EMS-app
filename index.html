@@ -56,24 +56,40 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 #ov .bar{display:flex;gap:8px;position:sticky;bottom:0;z-index:2;margin:12px -12px -24px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#0a121e;border-top:1px solid #2a3a50}
 #ov .bar button{max-width:260px}
 #ov .bar button{flex:1;font-weight:600}
-#card{width:360px;margin:0 auto;background:#fff;color:#14243b;text-align:left;font:13px/1.45 "Noto Sans Thai",sans-serif;border-radius:10px;overflow:hidden}
-#card .hd{background:linear-gradient(135deg,#e5173f,#a80b38 55%,#1f3b8f);color:#fff;padding:12px 14px}
-#card .hd b{font:700 16px Prompt,sans-serif;display:block}
-#card .hd span{font-size:12px;opacity:.9}
-#card .dm{margin-top:8px;display:flex;gap:8px;align-items:center}
-#card .dm i{font-style:normal;background:rgba(255,255,255,.2);border-radius:999px;padding:2px 12px;font:600 14px Prompt,sans-serif}
-#card .dm i.md{background:#fff;color:#a80b38}
-#card .dest{margin-top:8px;background:#fff;color:#14243b;border-radius:8px;padding:5px 10px;font:600 15px Prompt,sans-serif}
-#card .bd{padding:8px 14px 12px}
-#card h3{font:600 14px Prompt,sans-serif;color:#e5173f;margin:10px 0 3px;border-bottom:1.5px solid #f0c9d1;padding-bottom:2px}
-#card table{width:100%;border-collapse:collapse}
-#card td{padding:2px 0;vertical-align:top;word-break:break-word}
-#card td.k{width:34%;color:#5f6f86;padding-right:8px}
-#card .ft{font-size:11px;color:#5f6f86;padding:0 14px 10px}
+.sumcard{width:360px;margin:0 auto;background:#fff;color:#14243b;text-align:left;font:13px/1.45 "Noto Sans Thai",sans-serif;border-radius:10px;overflow:hidden}
+.sumcard .hd{background:linear-gradient(135deg,#e5173f,#a80b38 55%,#1f3b8f);color:#fff;padding:12px 14px}
+.sumcard .hd b{font:700 16px Prompt,sans-serif;display:block}
+.sumcard .hd span{font-size:12px;opacity:.9}
+.sumcard .dm{margin-top:8px;display:flex;gap:8px;align-items:center}
+.sumcard .dm i{font-style:normal;background:rgba(255,255,255,.2);border-radius:999px;padding:2px 12px;font:600 14px Prompt,sans-serif}
+.sumcard .dm i.md{background:#fff;color:#a80b38}
+.sumcard .dest{margin-top:8px;background:#fff;color:#14243b;border-radius:8px;padding:5px 10px;font:600 15px Prompt,sans-serif}
+.sumcard .bd{padding:8px 14px 12px}
+.sumcard h3{font:600 14px Prompt,sans-serif;color:#e5173f;margin:10px 0 3px;border-bottom:1.5px solid #f0c9d1;padding-bottom:2px}
+.sumcard table{width:100%;border-collapse:collapse}
+.sumcard td{padding:2px 0;vertical-align:top;word-break:break-word}
+.sumcard td.k{width:34%;color:#5f6f86;padding-right:8px}
+.sumcard .ft{font-size:11px;color:#5f6f86;padding:0 14px 10px}
+#rv{position:fixed;inset:0;z-index:22;background:rgba(10,18,30,.94);overflow:auto;display:none;padding:14px 12px 24px}
+#rv .rvbox{max-width:520px;margin:0 auto}
+#rv .rvhd{color:#fff;margin-bottom:10px}
+#rv .rvhd b{font:700 18px Prompt,sans-serif;display:block}
+#rv .rvhd span{font-size:13px;opacity:.85}
+#rv .wn,#rv .gd,#rv .nt{border-radius:10px;padding:8px 12px;margin-bottom:8px;font-size:14px;color:#14243b}
+#rv .wn{background:#fff6e0;border:1px solid #f0cf85}
+#rv .wn b{color:#8a5a00;display:block;margin-bottom:2px}
+#rv .wi{padding:7px 0;border-top:1px solid #f0e2b8;cursor:pointer}
+#rv .wn b+.wi{border-top:0}
+#rv .gd{background:#e6f6ec;border:1px solid #9fd3b2}
+#rv .nt{background:#f1f4f9;color:#5f6f86;font-size:13px}
+#rv #rvcard{margin:10px auto 0}
+#rv .bar{display:flex;gap:8px;position:sticky;bottom:0;z-index:2;margin:12px -12px -24px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#0a121e;border-top:1px solid #2a3a50}
+#rv .bar button{flex:1;font-weight:600}
+.flash{outline:3px solid #e5173f;outline-offset:2px;border-radius:8px}
 </style>
 </head>
 <body>
-<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.7</p></header>
+<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.9</p></header>
 <div id="msg"></div>
 
 <section class="card" style="--c:var(--red)">
@@ -89,6 +105,8 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
   <select id="staff3"></select>
   <p id="staffhint3" style="margin:6px 0 0;font-size:13px;color:var(--mute)" hidden>ยังไม่มีรายชื่อ กดปุ่มด้านล่างเพื่อเพิ่ม (ทุกเครื่องจะเห็นเหมือนกัน)</p>
   <button type="button" id="edstaff3" style="margin-top:8px;width:100%;color:var(--blue);border-color:var(--blue);background:transparent">✏️ เพิ่ม/ลดรายชื่อ (คนที่ 3)</button>
+  <p id="syncst" style="margin:10px 0 0;font-size:13px;color:var(--mute)">สถานะซิงก์รายชื่อ: กำลังเชื่อมต่อ...</p>
+  <button type="button" id="chk" style="margin-top:6px;width:100%;color:var(--mute);background:transparent;min-height:40px;font-size:14px">🔄 ตรวจสถานะซิงก์</button>
 </section>
 
 <section class="card" style="--c:var(--amber)">
@@ -136,12 +154,21 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
   <button type="button" id="edx" style="width:100%">เสร็จ</button>
 </div></div>
 
+<div id="rv">
+  <div class="rvbox">
+    <div class="rvhd"><b>ตรวจทานก่อนบันทึก</b><span id="rvsub"></span></div>
+    <div id="rvwarn"></div><div id="rvnote"></div>
+    <div id="rvcard" class="sumcard"></div>
+  </div>
+  <div class="bar"><button type="button" id="rvback" style="background:var(--blue);border-color:var(--blue);color:#fff">กลับไปแก้ไข</button><button type="button" id="rvgo">ยืนยันบันทึก</button></div>
+</div>
+
 <div id="ov">
   <p class="tip" id="tip">กำลังสร้างรูปสรุป...</p>
-  <div id="card"></div>
+  <div id="card" class="sumcard"></div>
   <img id="img" alt="รูปสรุปเคส">
-  <p class="tip" style="margin-top:12px;font-size:12px;opacity:.8">เคสซ้อน = ล้างข้อมูลเหตุเดิม คงวันที่ ALS/BLS ชื่อเจ้าหน้าที่ ทะเบียนรถ และใช้เลขไมล์ล่าสุดเป็นไมล์ออกของเคสใหม่</p>
-  <div class="bar"><button type="button" id="again" style="background:var(--blue);border-color:var(--blue);color:#fff">＋ เคสซ้อน</button><button type="button" id="newcase">เสร็จ</button></div>
+  <p class="tip" style="margin-top:12px;font-size:12px;opacity:.8">เคสซ้อน = ล้างข้อมูลเหตุเดิม คงวันที่ ALS/BLS ชื่อเจ้าหน้าที่ ทะเบียนรถ และใช้เลขไมล์ล่าสุดเป็นไมล์ออกของเคสใหม่<br>แก้ไขข้อมูล = กลับไปแก้ในฟอร์มเดิม บันทึกซ้ำจะเขียนทับเคสเดิมใน Sheet และได้รูปใหม่</p>
+  <div class="bar"><button type="button" id="again" style="background:var(--blue);border-color:var(--blue);color:#fff">＋ เคสซ้อน</button><button type="button" id="editcase">✏️ แก้ไขข้อมูล</button><button type="button" id="newcase">เสร็จ</button></div>
 </div>
 
 <button id="save" type="button">บันทึกเคส</button>
@@ -297,6 +324,22 @@ async function sendList(body) {
   await fetch(GAS_URL, {method: "POST", mode: "no-cors", headers: {"Content-Type": "text/plain"}, body: JSON.stringify(Object.assign({idToken: liff.getIDToken()}, body))});
 }
 let pendingOps = 0, synced = false;
+function setSt(t, ok) { const e = $("syncst"); e.textContent = "สถานะซิงก์รายชื่อ: " + t; e.style.color = ok === true ? "var(--ok)" : ok === false ? "var(--red)" : "var(--mute)"; }
+async function diagnose() {
+  setSt("กำลังตรวจสอบ... (อาจรอได้ถึง 10 วินาที)");
+  let login = false;
+  try { login = !!(window.liff && liff.isLoggedIn && liff.isLoggedIn() && liff.getIDToken()); } catch (e) {}
+  try {
+    const d = await fetchLists();
+    if (pendingOps === 0) applyLists(d);
+    synced = true;
+    const n = (d.staff || []).length + (d.staff3 || []).length;
+    setSt(`เซิร์ฟเวอร์ตอบปกติ · อ่านรายชื่อได้ ${n} ชื่อ` + (login ? " · ล็อกอิน LINE แล้ว ✓ เพิ่ม/ลบได้" : " · ⚠️ ยังไม่ได้ล็อกอิน LINE ต้องเปิดจากลิงก์ LIFF ในแอป LINE จึงจะเพิ่ม/ลบได้"), login);
+  } catch (e) {
+    setSt("⚠️ เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ สาเหตุที่พบบ่อย: ยังไม่ได้ Deploy Code.gs เวอร์ชันใหม่, สิทธิ์ไม่ใช่ Anyone หรือ GAS_URL ไม่ตรง" + (login ? "" : " · และยังไม่ได้ล็อกอิน LINE"), false);
+  }
+}
+$("chk").addEventListener("click", diagnose);
 async function listOp(op, kind, value) {
   const st = $("edmsg"); pendingOps++; st.textContent = "กำลังซิงก์...";
   try {
@@ -315,11 +358,12 @@ async function syncLists() {
       await sendList({action: "list_merge", lists: snap});
       await new Promise(r => setTimeout(r, 1500));
       const data = await fetchLists();
-      if (Object.keys(snap).every(k => snap[k].every(v => (data[k] || []).includes(v)))) { LS.set("ems_migrated", true); applyLists(data); synced = true; }
+      if (Object.keys(snap).every(k => snap[k].every(v => (data[k] || []).includes(v)))) { LS.set("ems_migrated", true); applyLists(data); synced = true; setSt("ซิงก์แล้ว ✓ ทุกเครื่องใช้รายชื่อชุดเดียวกัน", true); }
+      else setSt("ส่งรายชื่อเข้าส่วนกลางไม่สำเร็จ น่าจะยังไม่ได้อัปเดต/Deploy Code.gs เวอร์ชันใหม่ กด \"ตรวจสถานะซิงก์\"", false);
       return;
     }
-    applyLists(await fetchLists()); synced = true;
-  } catch (e) { /* ใช้รายการที่เก็บในเครื่องไปก่อน */ }
+    applyLists(await fetchLists()); synced = true; setSt("ซิงก์แล้ว ✓ ทุกเครื่องใช้รายชื่อชุดเดียวกัน", true);
+  } catch (e) { setSt("ซิงก์ไม่สำเร็จ ใช้รายชื่อในเครื่องนี้ไปก่อน กด \"ตรวจสถานะซิงก์\" เพื่อดูสาเหตุ", false); }
 }
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && synced && pendingOps === 0) fetchLists().then(d => { if (pendingOps === 0) applyLists(d); }).catch(() => {});
@@ -334,7 +378,7 @@ function saveDraft() {
     const vals = {}, checks = {};
     document.querySelectorAll("input[id],select[id],textarea[id]").forEach(e => vals[e.id] = e.value);
     ["mode", "dest", "ev"].forEach(n => checks[n] = [...document.querySelectorAll(`input[name="${n}"]:checked`)].map(c => c.value));
-    LS.set(DK, {t: Date.now(), np, vals, checks});
+    LS.set(DK, {t: Date.now(), np, vals, checks, op: curOp, editing});
   }, 500);
 }
 ["input", "change"].forEach(ev => document.addEventListener(ev, e => { if (!e.target.closest("#ed")) saveDraft(); }));
@@ -344,6 +388,7 @@ function restoreDraft() {
   if (!d || Date.now() - d.t > 12 * 36e5) { LS.del(DK); return; }
   const has = Object.entries(d.vals || {}).some(([k, v]) => k !== "date" && v) || Object.values(d.checks || {}).some(a => a.length);
   if (!has) return;
+  curOp = d.op || ""; editing = !!d.editing; if (editing) $("save").textContent = "บันทึกการแก้ไข";
   while (np < Math.min(d.np || 1, 20)) addPatient();
   Object.entries(d.vals).forEach(([id, v]) => { const el = $(id); if (el && v !== undefined) setVal(el, v); });
   Object.entries(d.checks || {}).forEach(([n, arr]) => document.querySelectorAll(`input[name="${n}"]`).forEach(c => c.checked = arr.includes(c.value)));
@@ -407,7 +452,14 @@ async function showSummary(d) {
   }
 }
 $("newcase").addEventListener("click", () => location.reload());
+$("editcase").addEventListener("click", () => {
+  editing = true; $("save").textContent = "บันทึกการแก้ไข"; $("save").disabled = false;
+  $("ov").style.display = "none"; document.body.style.overflow = ""; window.scrollTo(0, 0);
+  msg("แก้ไขข้อมูลแล้วกดบันทึกอีกครั้ง · จะเขียนทับเคสเดิม", 1);
+  saveDraft();
+});
 $("again").addEventListener("click", () => {
+  curOp = ""; editing = false; $("save").textContent = "บันทึกเคส";
   const KEEP = ["date", "staff1", "staff2", "staff3", "plate"];
   const prev = ["m_base", "m_hosp", "m_scene", "m_depart"].map(id => $(id).value).find(Boolean) || "";   // ไมล์ล่าสุดของเคสก่อน
   [...$("pts").children].slice(1).forEach(el => el.remove()); np = 1; $("addp").textContent = "＋ เพิ่มผู้ป่วยรายที่ 2";
@@ -419,29 +471,106 @@ $("again").addEventListener("click", () => {
   msg(prev ? `พร้อมบันทึกเคสซ้อน · ไมล์ออกต่อจากเคสก่อน (${prev})` : "พร้อมบันทึกเคสซ้อน", 1);
 });
 
+/* ===== ตรวจทานก่อนบันทึก ===== */
+const TL = {t_call: "รับแจ้ง", t_depart: "ออกจาก รพ.", t_scene: "ถึงเหตุ", t_leave: "ออกจากเหตุ", t_hosp: "ถึง รพ.", t_base: "ถึงฐาน"};
+const ML = {m_depart: "ไมล์ออก", m_scene: "ไมล์ถึงเหตุ", m_hosp: "ไมล์ถึง รพ.", m_base: "ไมล์ถึงฐาน"};
+const mins = t => { const m = /^(\d{1,2}):(\d\d)/.exec(t || ""); return m ? +m[1] * 60 + +m[2] : null; };
+const cidOk = c => { let t = 0; for (let i = 0; i < 12; i++) t += +c[i] * (13 - i); return (11 - t % 11) % 10 === +c[12]; };
+function validate(d) {
+  const W = [], N = [], w = (t, f) => W.push({t, f});
+  if (!d.mode) w("ยังไม่ได้เลือก ALS/BLS", "mode");
+  const st = [d.staff1, d.staff2, d.staff3].filter(Boolean);
+  if (!st.length) w("ยังไม่ได้เลือกชื่อเจ้าหน้าที่", "staff1");
+  else if (new Set(st).size < st.length) w("เลือกชื่อเจ้าหน้าที่ซ้ำกัน", "staff1");
+  if (!d.loc) w("ยังไม่ได้ใส่สถานที่", "loc");
+  if (!d.ev) w("ยังไม่ได้เลือกประเภทเหตุ", "ev");
+  if (!d.t_depart || !d.t_scene) w("ยังไม่ได้ใส่เวลาออกจาก รพ. หรือเวลาถึงเหตุ", !d.t_depart ? "t_depart" : "t_scene");
+  const tk = Object.keys(TL).filter(k => d[k]);
+  for (let i = 1; i < tk.length; i++) {
+    const a = tk[i - 1], b = tk[i], diff = (mins(d[b]) - mins(d[a]) + 1440) % 1440;
+    if (diff > 720) w(`${TL[b]} (${d[b]}) เร็วกว่า ${TL[a]} (${d[a]}) เรียงเวลาถูกไหม`, b);
+  }
+  const mk = Object.keys(ML).filter(k => d[k]);
+  for (let i = 1; i < mk.length; i++) {
+    const a = mk[i - 1], b = mk[i], df = +d[b] - +d[a];
+    if (df < 0) w(`${ML[b]} (${d[b]}) น้อยกว่า ${ML[a]} (${d[a]})`, b);
+    else if (df > 300) w(`${ML[b]} ห่างจาก ${ML[a]} ${df} กม. ผิดปกติหรือไม่`, b);
+  }
+  if (d.dest && !d.t_hosp) w(`เลือกนำส่ง ${d.dest} แต่ไม่มีเวลาถึง รพ.`, "t_hosp");
+  if (d.t_hosp && !d.dest) w("มีเวลาถึง รพ. แต่ยังไม่ได้เลือก รพ.ที่นำส่ง", "dest");
+  let any = 0;
+  for (let n = 1; n <= 20; n++) {
+    const p = k => d["p" + n + "_" + k] || "";
+    if (d["p" + n + "_name"] === undefined) break;
+    if (!["name", "cid", "sex", "age", "hn", "sym"].some(p)) continue;
+    any++;
+    const who = `ผู้ป่วยรายที่ ${n}`;
+    if (!p("name")) w(`${who}: ยังไม่ได้ใส่ชื่อ`, `p${n}_name`);
+    if (p("cid") && !/^\d{13}$/.test(p("cid"))) w(`${who}: เลขบัตรไม่ครบ 13 หลัก (มี ${p("cid").length} หลัก)`, `p${n}_cid`);
+    else if (p("cid") && !cidOk(p("cid"))) w(`${who}: เลขบัตรไม่ผ่านการตรวจเลขตรวจสอบ (อาจพิมพ์ผิด)`, `p${n}_cid`);
+    if (!p("cid")) N.push(`${who}: ยังไม่มีเลขบัตร`);
+    if (!p("age")) w(`${who}: ยังไม่ได้ใส่อายุ`, `p${n}_age`);
+    else if (+p("age") > 110 || +p("age") < 0) w(`${who}: อายุ ${p("age")} ผิดปกติหรือไม่`, `p${n}_age`);
+    if (!p("sym")) w(`${who}: ยังไม่ได้ใส่อาการ`, `p${n}_sym`);
+    if (!p("hn")) N.push(`${who}: HN ยังว่าง (เติมทีหลังได้)`);
+  }
+  if (!any) w("ยังไม่มีข้อมูลผู้ป่วย", "p1_name");
+  if (!d.plate) N.push("ยังไม่ได้ใส่ทะเบียนรถ");
+  return {W, N};
+}
+let rvWarns = [], rvData = null, curOp = "", editing = false;
+function openReview(d) {
+  const {W, N} = validate(d);
+  $("rvsub").textContent = W.length ? `พบ ${W.length} ข้อสังเกต · แตะข้อความเพื่อไปแก้ไข` : "ไม่พบข้อสังเกต";
+  $("rvwarn").innerHTML = W.length ? `<div class="wn"><b>ควรตรวจสอบ</b>${W.map((x, i) => `<div class="wi" data-i="${i}">• ${esc(x.t)}</div>`).join("")}</div>` : '<div class="gd">✓ ไม่พบข้อสังเกต ตรวจทานรูปสรุปด้านล่างแล้วกดบันทึก</div>';
+  $("rvnote").innerHTML = N.length ? `<div class="nt">หมายเหตุ: ${N.map(esc).join(" · ")}</div>` : "";
+  $("rvcard").innerHTML = cardHTML(d);
+  $("rvgo").textContent = (editing ? "บันทึกการแก้ไข" : "ยืนยันบันทึก") + (W.length ? " ทั้งที่มีข้อสังเกต" : "");
+  rvWarns = W; rvData = d;
+  $("rv").style.display = "block"; $("rv").scrollTop = 0; document.body.style.overflow = "hidden";
+}
+function closeReview() { $("rv").style.display = "none"; document.body.style.overflow = ""; }
+function goField(id) {
+  closeReview();
+  const el = $(id); if (!el) return;
+  el.scrollIntoView({behavior: "smooth", block: "center"});
+  el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 2500);
+  if (/^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName)) setTimeout(() => el.focus({preventScroll: true}), 400);
+}
+$("rvback").addEventListener("click", closeReview);
+$("rvwarn").addEventListener("click", e => { const it = e.target.closest(".wi"); if (it) goField(rvWarns[+it.dataset.i].f); });
+$("rvgo").addEventListener("click", () => { closeReview(); doSave(rvData); });
+
 /* บันทึก */
-let profile = {};
-$("save").addEventListener("click", async () => {
-  const bad = MILES.find(id => $(id).value && $(id).value.length !== 6);
-  if (bad) { msg("เลขไมล์ต้องครบ 6 หลัก"); $(bad).focus(); return; }
-  $("save").disabled = true; msg("กำลังบันทึก...", 1);
+const genOp = () => { const n = new Date(Date.now() + 7 * 36e5), p = x => String(x).padStart(2, "0"); return `${p(n.getUTCFullYear() % 100)}${p(n.getUTCMonth() + 1)}${p(n.getUTCDate())}-${p(n.getUTCHours())}${p(n.getUTCMinutes())}-${Math.random().toString(36).slice(2, 5).toUpperCase()}`; };
+function collect() {
   const data = {unit: UNIT};
   document.querySelectorAll("input[id],select[id],textarea[id]").forEach(e => data[e.id] = e.value);
   ["mode", "dest"].forEach(n => { const c = document.querySelector(`input[name="${n}"]:checked`); data[n] = c ? c.value : ""; });
   data.ev = [...document.querySelectorAll('input[name="ev"]:checked')].map(c => c.value).join(", ");
+  return data;
+}
+$("save").addEventListener("click", () => {
+  const bad = MILES.find(id => $(id).value && $(id).value.length !== 6);
+  if (bad) { msg("เลขไมล์ต้องครบ 6 หลัก"); $(bad).focus(); return; }
+  openReview(collect());
+});
+async function doSave(data) {
+  $("save").disabled = true; msg("กำลังบันทึก...", 1);
+  data.op_no = curOp = curOp || genOp();   // เลขเคสเดิม = เขียนทับเคสเดิมใน Sheet
   try {
     await fetch(GAS_URL, {method: "POST", mode: "no-cors", headers: {"Content-Type": "text/plain"}, body: JSON.stringify({idToken: liff.getIDToken(), data})});
     clearTimeout(dT); LS.del(DK);
-    msg("บันทึกแล้ว ✓", 1); showSummary(data);
+    msg(editing ? "บันทึกการแก้ไขแล้ว ✓" : "บันทึกแล้ว ✓", 1); showSummary(data);
   } catch (e) { msg("บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง"); $("save").disabled = false; }
-});
+}
 
 $("date").value = new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
 fillStaff(); restoreDraft();
 liff.init({liffId: LIFF_ID}).then(async () => {
   if (!liff.isLoggedIn()) return liff.login();
   syncLists();
-}).catch(() => msg("เปิดใน LINE เท่านั้น / LIFF ID ยังไม่ถูกตั้งค่า"));
+}).catch(() => { msg("เปิดใน LINE เท่านั้น / LIFF ID ยังไม่ถูกตั้งค่า"); setSt("ไม่ได้เชื่อมต่อ LINE (เปิดจากลิงก์ LIFF ในแอป LINE / เช็ก LIFF ID) จึงเพิ่ม/ลบรายชื่อไม่ได้", false); });
 </script>
 </body>
 </html>
