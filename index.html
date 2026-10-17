@@ -89,7 +89,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 </style>
 </head>
 <body>
-<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.9</p></header>
+<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.11</p></header>
 <div id="msg"></div>
 
 <section class="card" style="--c:var(--red)">
@@ -140,8 +140,8 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 <button type="button" id="addp" style="width:100%;margin:0 0 12px;border-color:var(--vio);color:var(--vio);font-weight:600">＋ เพิ่มผู้ป่วยรายที่ 2</button>
 
 <section class="card" style="--c:var(--red)">
-  <h2>ทะเบียนรถ</h2>
-  <input id="plate" aria-label="ทะเบียนรถ">
+  <h2>ทะเบียนรถผู้ประสบเหตุ</h2>
+  <input id="plate" aria-label="ทะเบียนรถผู้ประสบเหตุ" placeholder="ถ้ามี เช่น กท 1234 (เว้นว่างได้)">
 </section>
 
 <button type="button" id="clr" style="width:100%;margin:0 0 12px;color:var(--mute);background:transparent">🗑 ล้างฟอร์มทั้งหมด</button>
@@ -167,7 +167,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
   <p class="tip" id="tip">กำลังสร้างรูปสรุป...</p>
   <div id="card" class="sumcard"></div>
   <img id="img" alt="รูปสรุปเคส">
-  <p class="tip" style="margin-top:12px;font-size:12px;opacity:.8">เคสซ้อน = ล้างข้อมูลเหตุเดิม คงวันที่ ALS/BLS ชื่อเจ้าหน้าที่ ทะเบียนรถ และใช้เลขไมล์ล่าสุดเป็นไมล์ออกของเคสใหม่<br>แก้ไขข้อมูล = กลับไปแก้ในฟอร์มเดิม บันทึกซ้ำจะเขียนทับเคสเดิมใน Sheet และได้รูปใหม่</p>
+  <p class="tip" style="margin-top:12px;font-size:12px;opacity:.8">เคสซ้อน = ล้างข้อมูลเหตุเดิม คงวันที่ ALS/BLS ชื่อเจ้าหน้าที่ และใช้เลขไมล์ล่าสุดเป็นไมล์ออกของเคสใหม่<br>แก้ไขข้อมูล = กลับไปแก้ในฟอร์มเดิม บันทึกซ้ำจะเขียนทับเคสเดิมใน Sheet และได้รูปใหม่</p>
   <div class="bar"><button type="button" id="again" style="background:var(--blue);border-color:var(--blue);color:#fff">＋ เคสซ้อน</button><button type="button" id="editcase">✏️ แก้ไขข้อมูล</button><button type="button" id="newcase">เสร็จ</button></div>
 </div>
 
@@ -433,7 +433,7 @@ function cardHTML(d) {
     shown++;
     h += `<h3>ผู้ป่วยรายที่ ${shown}</h3><table>${kv("ชื่อ-สกุล", p("name"))}${kv("เลขบัตร ปชช.", fmtCid(p("cid")))}${kv("อายุ", p("age") && p("age") + " ปี")}${kv("HN", p("hn"))}${kv("อาการ", p("sym"))}</table>`;
   }
-  h += `<h3>ประเภทเหตุ</h3><table>${kv("เหตุการณ์", ev)}</table></div><div class="ft">มีชื่อ เลขบัตร และ HN ผู้ป่วย · เก็บเป็นความลับ · สร้างเมื่อ ${new Date().toLocaleString("th-TH", {dateStyle: "short", timeStyle: "short"})}</div>`;
+  h += `<h3>ประเภทเหตุ</h3><table>${kv("เหตุการณ์", ev)}${kv("ทะเบียนรถผู้ประสบเหตุ", d.plate)}</table></div><div class="ft">มีชื่อ เลขบัตร และ HN ผู้ป่วย · เก็บเป็นความลับ · สร้างเมื่อ ${new Date().toLocaleString("th-TH", {dateStyle: "short", timeStyle: "short"})}</div>`;
   return h;
 }
 async function showSummary(d) {
@@ -460,7 +460,7 @@ $("editcase").addEventListener("click", () => {
 });
 $("again").addEventListener("click", () => {
   curOp = ""; editing = false; $("save").textContent = "บันทึกเคส";
-  const KEEP = ["date", "staff1", "staff2", "staff3", "plate"];
+  const KEEP = ["date", "staff1", "staff2", "staff3"];
   const prev = ["m_base", "m_hosp", "m_scene", "m_depart"].map(id => $(id).value).find(Boolean) || "";   // ไมล์ล่าสุดของเคสก่อน
   [...$("pts").children].slice(1).forEach(el => el.remove()); np = 1; $("addp").textContent = "＋ เพิ่มผู้ป่วยรายที่ 2";
   document.querySelectorAll("input[id],select[id],textarea[id]").forEach(e => { if (!KEEP.includes(e.id)) e.value = ""; });
@@ -515,7 +515,6 @@ function validate(d) {
     if (!p("hn")) N.push(`${who}: HN ยังว่าง (เติมทีหลังได้)`);
   }
   if (!any) w("ยังไม่มีข้อมูลผู้ป่วย", "p1_name");
-  if (!d.plate) N.push("ยังไม่ได้ใส่ทะเบียนรถ");
   return {W, N};
 }
 let rvWarns = [], rvData = null, curOp = "", editing = false;
