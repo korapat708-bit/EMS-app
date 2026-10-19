@@ -89,7 +89,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 </style>
 </head>
 <body>
-<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.11</p></header>
+<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.12 (ทดลองสแกนบัตร)</p></header>
 <div id="msg"></div>
 
 <section class="card" style="--c:var(--red)">
@@ -271,6 +271,11 @@ document.addEventListener("input", e => { const m = /^p(\d+)_(?:sym|tx)$/.exec(e
 const op = (a, b) => "<option></option>" + Array.from({length: b-a+1}, (_, i) => `<option>${a+i}</option>`).join("");
 const f = (n, k, l, extra = "") => `<div><label for="p${n}_${k}">${l}</label><input id="p${n}_${k}" ${extra}></div>`;
 const pt = n => `
+<button type="button" class="scan" data-p="${n}" style="width:100%;margin-bottom:6px;color:var(--c);border-color:var(--c);background:transparent;font-weight:600">📷 สแกนบัตร ปชช. (ทดลอง)</button>
+<input type="file" accept="image/*" capture="environment" class="scanf" data-p="${n}" hidden>
+<p class="scanst" data-p="${n}" style="margin:0 0 4px;font-size:13px;color:var(--mute)">ถ่ายหน้าบัตรให้เห็นเลข 13 หลักและชื่อชัด ระบบอ่านในเครื่อง ไม่อัปโหลดรูป · เพศและอายุกรอกเอง</p>
+<p class="scanstat" style="margin:0 0 4px;font-size:12px;color:var(--mute)"></p>
+<details style="margin:0 0 8px"><summary style="font-size:12px;color:var(--mute)">ผลดิบจากตัวอ่าน (สำหรับทดลอง)</summary><pre class="scanraw" data-p="${n}" style="white-space:pre-wrap;font-size:12px;margin:4px 0 0"></pre></details>
 <label for="p${n}_name">ชื่อ-สกุล</label><input id="p${n}_name">
 <div class="g2"><div><label for="p${n}_sex">เพศ</label><select id="p${n}_sex"><option></option><option>ชาย</option><option>หญิง</option></select></div>${f(n,"age","อายุ (ปี)",'type="number" inputmode="numeric"')}</div>
 <label for="p${n}_cid">เลขบัตรประชาชน</label><input id="p${n}_cid" inputmode="numeric" maxlength="13">
@@ -295,7 +300,7 @@ function addPatient() {
   return sec;
 }
 addPatient();
-$("addp").addEventListener("click", () => { const sec = addPatient(); if (sec) sec.scrollIntoView({behavior: "smooth", block: "start"}); });
+$("addp").addEventListener("click", () => { const sec = addPatient(); if (sec) { showStat(); sec.scrollIntoView({behavior: "smooth", block: "start"}); } });
 
 /* ===== ซิงก์รายการกับส่วนกลาง (Google Sheet แท็บ "ตั้งค่า") ===== */
 function applyLists(d) {
@@ -471,6 +476,98 @@ $("again").addEventListener("click", () => {
   msg(prev ? `พร้อมบันทึกเคสซ้อน · ไมล์ออกต่อจากเคสก่อน (${prev})` : "พร้อมบันทึกเคสซ้อน", 1);
 });
 
+/* ===== สแกนบัตร ปชช. (ทดลอง): อ่านในเครื่อง ไม่อัปโหลดรูป ===== */
+const OCR_SRC = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";
+let ocrW = null, ocrLog = () => {};
+const ocrStat = () => LS.get("ems_ocr_stats", {scans: 0, idOk: 0, idBad: 0, noId: 0, nameFilled: 0, nameEdited: 0});
+function showStat() {
+  const t = ocrStat(), txt = `สถิติทดลองบนเครื่องนี้ (ไม่เก็บข้อมูลบัตร): สแกน ${t.scans} · เลขผ่านตรวจสอบ ${t.idOk} · เลขไม่ผ่าน ${t.idBad} · อ่านเลขไม่ได้ ${t.noId} · ชื่อถูกแก้ ${t.nameEdited}/${t.nameFilled}`;
+  document.querySelectorAll(".scanstat").forEach(e => e.textContent = txt);
+}
+const setScan = (n, t) => { const e = document.querySelector(`.scanst[data-p="${n}"]`); if (e) e.textContent = t; };
+const loadScript = src => new Promise((res, rej) => { const sc = document.createElement("script"); sc.src = src; sc.onload = res; sc.onerror = () => rej(new Error("โหลดตัวอ่านไม่สำเร็จ (ต้องมีอินเทอร์เน็ต)")); document.head.appendChild(sc); });
+async function getOcr() {
+  if (ocrW) return ocrW;
+  if (!window.Tesseract) await loadScript(OCR_SRC);
+  ocrW = await Tesseract.createWorker("tha+eng", 1, {logger: m => ocrLog(m)});
+  return ocrW;
+}
+function loadImg(file) {
+  return new Promise((res, rej) => { const u = URL.createObjectURL(file), im = new Image(); im.onload = () => { URL.revokeObjectURL(u); res(im); }; im.onerror = () => { URL.revokeObjectURL(u); rej(new Error("เปิดรูปไม่ได้")); }; im.src = u; });
+}
+function prepCanvas(im) {   // ย่อรูป + ขาวดำ + ปรับคอนทราสต์
+  const sc = Math.min(1, 1800 / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement("canvas");
+  c.width = Math.round(im.naturalWidth * sc); c.height = Math.round(im.naturalHeight * sc);
+  const x = c.getContext("2d", {willReadFrequently: true}); x.drawImage(im, 0, 0, c.width, c.height);
+  const d = x.getImageData(0, 0, c.width, c.height), p = d.data; let lo = 255, hi = 0;
+  for (let i = 0; i < p.length; i += 4) { const g = (p[i] * 0.299 + p[i + 1] * 0.587 + p[i + 2] * 0.114) | 0; p[i] = g; if (g < lo) lo = g; if (g > hi) hi = g; }
+  const span = Math.max(1, hi - lo);
+  for (let i = 0; i < p.length; i += 4) { const g = Math.max(0, Math.min(255, ((p[i] - lo) * 255 / span) | 0)); p[i] = p[i + 1] = p[i + 2] = g; }
+  x.putImageData(d, 0, 0); return c;
+}
+function idCandidates(text) {   // หาเลข 13 หลักจากแต่ละบรรทัด (ตัดช่องว่าง/ขีด)
+  const out = [];
+  String(text || "").split(/\n/).forEach(line => {
+    const dg = line.replace(/[\s\-.,]/g, "").replace(/\D/g, "");
+    for (let i = 0; i + 13 <= dg.length; i++) out.push(dg.slice(i, i + 13));
+  });
+  return out;
+}
+const TITLE_RE = /(นางสาว|น\.ส\.|นาย|นาง|เด็กชาย|เด็กหญิง|ด\.ช\.|ด\.ญ\.|ดช\.|ดญ\.)\s*(.*)$/;
+function parseName(text) {
+  const lines = String(text || "").split(/\n/).map(l => l.replace(/[^\u0E00-\u0E7F\s.]/g, "").replace(/\s+/g, " ").trim()).filter(Boolean);
+  for (const l of lines) {
+    const base = l.includes("ชื่อตัว") ? l.split(/ชื่อสกุล|ชื่อตัวและชื่อสกุล/).pop() : l;
+    const m = TITLE_RE.exec(base);
+    if (m && m[2]) {
+      const tk = m[2].split(" ").filter(Boolean);
+      if (tk.length) return m[1] + tk[0] + (tk.length > 1 ? " " + tk.slice(1).join(" ") : "");
+    }
+  }
+  return "";
+}
+let ocrName = {};
+async function scanCard(n, file) {
+  const t = ocrStat(); t.scans++;
+  ocrLog = m => { if (m.status === "recognizing text") setScan(n, `กำลังอ่านบัตร... ${Math.round(m.progress * 100)}%`); else if (m.progress != null && /load|initializ/i.test(m.status || "")) setScan(n, `กำลังเตรียมตัวอ่านครั้งแรก... ${Math.round(m.progress * 100)}%`); };
+  let cv = null;
+  try {
+    setScan(n, "กำลังเตรียมรูป...");
+    cv = prepCanvas(await loadImg(file));
+    setScan(n, "กำลังโหลดตัวอ่านภาษาไทย (ครั้งแรกอาจใช้เวลา ต้องมีอินเทอร์เน็ต)...");
+    const w = await getOcr();
+    const r1 = await w.recognize(cv); let text = r1.data.text || "", ids = idCandidates(text), valid = ids.find(cidOk);
+    if (!valid) {   // รอบสอง: อ่านเฉพาะตัวเลขในครึ่งบนของรูป
+      setScan(n, "กำลังอ่านเลขบัตรซ้ำ...");
+      await w.setParameters({tessedit_char_whitelist: "0123456789 -", tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK});
+      const r2 = await w.recognize(cv, {rectangle: {left: 0, top: 0, width: cv.width, height: Math.round(cv.height * 0.45)}});
+      text += "\n--- รอบเลข ---\n" + (r2.data.text || "");
+      const ids2 = idCandidates(r2.data.text); valid = ids2.find(cidOk); ids = ids.concat(ids2);
+      await w.setParameters({tessedit_char_whitelist: "", tessedit_pageseg_mode: Tesseract.PSM.AUTO});
+    }
+    const cid = valid || ids[0] || "", name = parseName(text), msgs = [];
+    if (cid) { $(`p${n}_cid`).value = cid; $(`p${n}_cid`).dispatchEvent(new Event("input", {bubbles: true})); }
+    if (valid) { t.idOk++; msgs.push("✓ เลขบัตรผ่านการตรวจสอบ"); } else if (cid) { t.idBad++; msgs.push("⚠️ เลขบัตรไม่ผ่านการตรวจสอบ ตรวจกับบัตรอีกครั้ง"); } else { t.noId++; msgs.push("⚠️ อ่านเลขบัตรไม่ได้ ถ่ายใหม่หรือพิมพ์เอง"); }
+    if (name) { $(`p${n}_name`).value = name; $(`p${n}_name`).dispatchEvent(new Event("input", {bubbles: true})); ocrName[n] = name; t.nameFilled++; msgs.push("ตรวจชื่อให้ตรงกับบัตร"); } else msgs.push("อ่านชื่อไม่ได้ พิมพ์เอง");
+    msgs.push("กรอกเพศและอายุเอง");
+    setScan(n, msgs.join(" · "));
+    const raw = document.querySelector(`.scanraw[data-p="${n}"]`); if (raw) raw.textContent = text;
+    [valid || !cid ? null : `p${n}_cid`, `p${n}_name`].filter(Boolean).forEach(id => { const el = $(id); el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 2500); });
+  } catch (e) {
+    setScan(n, "อ่านบัตรไม่สำเร็จ: " + (e && e.message ? e.message : e) + " · พิมพ์เองได้ตามปกติ");
+  } finally {
+    if (cv) { cv.width = cv.height = 0; }   // ทิ้งรูปทันที ไม่เก็บ
+    LS.set("ems_ocr_stats", t); showStat();
+  }
+}
+document.addEventListener("click", e => { const b = e.target.closest(".scan"); if (b) document.querySelector(`.scanf[data-p="${b.dataset.p}"]`).click(); });
+document.addEventListener("change", e => {
+  const f = e.target;
+  if (f.classList && f.classList.contains("scanf")) { const file = f.files && f.files[0]; f.value = ""; if (file) scanCard(f.dataset.p, file); return; }
+  const m = /^p(\d+)_name$/.exec(f.id || "");
+  if (m && ocrName[m[1]] !== undefined && f.value !== ocrName[m[1]]) { const t = ocrStat(); t.nameEdited++; LS.set("ems_ocr_stats", t); delete ocrName[m[1]]; showStat(); }
+});
+
 /* ===== ตรวจทานก่อนบันทึก ===== */
 const TL = {t_call: "รับแจ้ง", t_depart: "ออกจาก รพ.", t_scene: "ถึงเหตุ", t_leave: "ออกจากเหตุ", t_hosp: "ถึง รพ.", t_base: "ถึงฐาน"};
 const ML = {m_depart: "ไมล์ออก", m_scene: "ไมล์ถึงเหตุ", m_hosp: "ไมล์ถึง รพ.", m_base: "ไมล์ถึงฐาน"};
@@ -565,7 +662,7 @@ async function doSave(data) {
 }
 
 $("date").value = new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
-fillStaff(); restoreDraft();
+fillStaff(); restoreDraft(); showStat();
 liff.init({liffId: LIFF_ID}).then(async () => {
   if (!liff.isLoggedIn()) return liff.login();
   syncLists();
