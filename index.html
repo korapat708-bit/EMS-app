@@ -95,7 +95,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 </style>
 </head>
 <body>
-<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.14 (ทดลองสแกนบัตร)</p></header>
+<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.15 (ทดลองถ่ายบัตร)</p></header>
 <div id="msg"></div>
 
 <section class="card" style="--c:var(--red)">
@@ -166,7 +166,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
   <video id="camv" playsinline muted autoplay></video>
   <div id="camg"></div>
   <p id="camt"></p>
-  <div class="camb"><button type="button" id="camx">ยกเลิก</button><button type="button" id="camp">ถ่ายรูปแทน</button></div>
+  <div class="camb"><button type="button" id="camx">ยกเลิก</button><button type="button" id="camshot" style="background:#e5173f;border-color:#e5173f;color:#fff;flex:1.6">📸 ถ่ายภาพ</button><button type="button" id="camp">เลือกรูปแทน</button></div>
 </div>
 
 <div id="rv">
@@ -286,10 +286,12 @@ document.addEventListener("input", e => { const m = /^p(\d+)_(?:sym|tx)$/.exec(e
 const op = (a, b) => "<option></option>" + Array.from({length: b-a+1}, (_, i) => `<option>${a+i}</option>`).join("");
 const f = (n, k, l, extra = "") => `<div><label for="p${n}_${k}">${l}</label><input id="p${n}_${k}" ${extra}></div>`;
 const pt = n => `
-<button type="button" class="scan" data-p="${n}" style="width:100%;margin-bottom:6px;color:var(--c);border-color:var(--c);background:transparent;font-weight:600">📷 สแกนบัตร ปชช. ด้วยกล้อง (ทดลอง)</button>
+<button type="button" class="scan" data-p="${n}" style="width:100%;margin-bottom:6px;color:var(--c);border-color:var(--c);background:transparent;font-weight:600">📷 ถ่ายภาพบัตร ปชช. (ทดลอง)</button>
 <button type="button" class="scanpick" data-p="${n}" style="width:100%;margin-bottom:6px;min-height:36px;font-size:13px;color:var(--mute);background:transparent">ถ่ายรูป/เลือกรูปจากเครื่องแทน</button>
 <input type="file" accept="image/*" capture="environment" class="scanf" data-p="${n}" hidden>
-<p class="scanst" data-p="${n}" style="margin:0 0 4px;font-size:13px;color:var(--mute)">วางบัตรให้เต็มกรอบ ระบบจะอ่านหลายภาพจนเลขผ่านการตรวจสอบ · อ่านในเครื่อง ไม่อัปโหลดรูป · เพศและอายุกรอกเอง</p>
+<p class="scanst" data-p="${n}" style="margin:0 0 4px;font-size:13px;color:var(--mute)">วางบัตรให้เต็มกรอบแล้วกดถ่ายภาพ 1 ครั้ง · อ่านในเครื่อง ไม่อัปโหลดรูป · เพศและอายุกรอกเอง</p>
+<label style="display:block;margin:0 0 6px;font-size:13px;color:var(--mute)"><input type="checkbox" class="ocrname" ${LS.get("ems_ocr_name", true) ? "checked" : ""}> อ่านชื่อจากบัตรด้วย (ภาษาไทย แม่นน้อยกว่าและช้ากว่าเลขบัตร)</label>
+<img class="scanpv" data-p="${n}" alt="ภาพบัตรเพื่อเทียบ" style="display:none;width:100%;border-radius:8px;margin:0 0 6px">
 <p class="scanstat" style="margin:0 0 4px;font-size:12px;color:var(--mute)"></p>
 <details style="margin:0 0 8px"><summary style="font-size:12px;color:var(--mute)">ข้อมูลวินิจฉัยตัวอ่าน (ปิดข้อมูลส่วนบุคคลแล้ว)</summary><pre class="scandiag" data-p="${n}" style="white-space:pre-wrap;font-size:12px;margin:4px 0 0"></pre><details><summary style="font-size:12px;color:var(--red)">ผลดิบจริง (มีข้อมูลบัตร ห้ามส่งต่อ)</summary><pre class="scanraw" data-p="${n}" style="white-space:pre-wrap;font-size:12px;margin:4px 0 0"></pre></details></details>
 <label for="p${n}_name">ชื่อ-สกุล</label><input id="p${n}_name">
@@ -481,7 +483,7 @@ $("editcase").addEventListener("click", () => {
   saveDraft();
 });
 $("again").addEventListener("click", () => {
-  curOp = ""; editing = false; $("save").textContent = "บันทึกเคส";
+  curOp = ""; editing = false; $("save").textContent = "บันทึกเคส"; clearPreviews();
   const KEEP = ["date", "staff1", "staff2", "staff3"];
   const prev = ["m_base", "m_hosp", "m_scene", "m_depart"].map(id => $(id).value).find(Boolean) || "";   // ไมล์ล่าสุดของเคสก่อน
   [...$("pts").children].slice(1).forEach(el => el.remove()); np = 1; $("addp").textContent = "＋ เพิ่มผู้ป่วยรายที่ 2";
@@ -641,74 +643,119 @@ function parseNameLoose(text) {   // สำรองเมื่อไม่พ�
   const c = String(text || "").split("\n").map(l => l.replace(/[^\u0E00-\u0E7F\s.]/g, "").replace(/\s+/g, " ").trim()).filter(l => l.replace(/[^\u0E00-\u0E7F]/g, "").length >= 6 && !bad.test(l));
   return c.sort((a, b) => b.length - a.length)[0] || "";
 }
-let camStop = false;
-async function scanLive(n) {
+let ocrE = null, camBusy = false;
+async function getOcrEng() {   // ตัวอ่านภาษาอังกฤษอย่างเดียว: เล็กและเร็ว ใช้อ่านตัวเลขบัตร
+  if (ocrE) return ocrE;
+  if (!window.Tesseract) await loadScript(OCR_SRC);
+  ocrE = await Tesseract.createWorker("eng", 1, {logger: m => ocrLog(m)});
+  return ocrE;
+}
+function otsuCanvas(src) {
+  const c = document.createElement("canvas"); c.width = src.width; c.height = src.height;
+  const x = c.getContext("2d", {willReadFrequently: true}); x.drawImage(src, 0, 0);
+  const d = x.getImageData(0, 0, c.width, c.height), p = d.data, hist = new Array(256).fill(0);
+  for (let i = 0; i < p.length; i += 4) hist[p[i]]++;
+  const total = c.width * c.height; let sum = 0; for (let i = 0; i < 256; i++) sum += i * hist[i];
+  let wB = 0, sB = 0, best = 0, th = 128;
+  for (let i = 0; i < 256; i++) { wB += hist[i]; if (!wB) continue; const wF = total - wB; if (!wF) break; sB += i * hist[i]; const mB = sB / wB, mF = (sum - sB) / wF, v = wB * wF * (mB - mF) * (mB - mF); if (v > best) { best = v; th = i; } }
+  for (let i = 0; i < p.length; i += 4) { const g = p[i] > th ? 255 : 0; p[i] = p[i + 1] = p[i + 2] = g; }
+  x.putImageData(d, 0, 0); return c;
+}
+const BAND_TALL = {x: 0.2, y: 0.05, w: 0.8, h: 0.32};
+async function readNumber(card, w, say) {   // อ่านเลขบัตรจากภาพเดียวหลายมุมมอง: คัดเลือกเลขที่ผ่านเลขตรวจสอบ
+  const votes = {}, any = {}, log = [], attempts = [
+    ["แถบเลข", () => bandCanvas(card, BANDS.num)],
+    ["แถบเลข ขาวดำ", () => otsuCanvas(bandCanvas(card, BANDS.num))],
+    ["แถบกว้าง", () => bandCanvas(card, BAND_TALL)],
+    ["แถบกว้าง ขาวดำ", () => otsuCanvas(bandCanvas(card, BAND_TALL))]
+  ];
+  let lastText = "";
+  await w.setParameters(DIGITS);
+  try {
+    for (let i = 0; i < attempts.length; i++) {
+      say(`กำลังอ่านเลขบัตร... (${i + 1}/${attempts.length})`);
+      const c = attempts[i][1](), r = await w.recognize(c); c.width = c.height = 0;
+      lastText = r.data.text || "";
+      const hits = idHits(lastText);
+      hits.forEach(h => { any[h.id] = (any[h.id] || 0) + 1; if (h.valid) votes[h.id] = (votes[h.id] || 0) + (h.grouped ? 2 : 1); });
+      log.push(`${attempts[i][0]}: มั่นใจ ${Math.round(r.data.confidence || 0)}% · เลข ${hits.length} ตัว · ผ่านตรวจ ${hits.filter(h => h.valid).length}`);
+      const top = Object.entries(votes).sort((x, y) => y[1] - x[1])[0];
+      if (top && top[1] >= 3) break;   // เลขแบ่งกลุ่มถูกรูปแบบและผ่านตรวจ หรือผ่านซ้ำหลายมุมมอง
+    }
+  } finally { await resetParams(w); }
+  const topV = Object.entries(votes).sort((x, y) => y[1] - x[1])[0], topA = Object.entries(any).sort((x, y) => y[1] - x[1])[0];
+  return {valid: topV ? topV[0] : "", best: topA ? topA[0] : "", votes: topV ? topV[1] : 0, log, lastText};
+}
+async function readName(card, w) {
+  const attempts = [() => bandCanvas(card, BANDS.name), () => otsuCanvas(bandCanvas(card, BANDS.name))]; let text = "";
+  for (const mk of attempts) {
+    const c = mk(), r = await w.recognize(c); c.width = c.height = 0;
+    text += "\n" + (r.data.text || "");
+    const nm = parseName(r.data.text) || parseNameLoose(r.data.text); if (nm) return {name: nm, text};
+  }
+  return {name: "", text};
+}
+function clearPreviews() { document.querySelectorAll(".scanpv").forEach(i => { i.removeAttribute("src"); i.style.display = "none"; }); }
+async function shootCard(n) {
+  if (camBusy) return;
   const ov = $("cam"), vid = $("camv"), say = t => $("camt").textContent = t;
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { setScan(n, "เครื่องนี้เปิดกล้องสดในหน้านี้ไม่ได้ ใช้ปุ่ม “ถ่ายรูป/เลือกรูปจากเครื่องแทน”"); return; }
-  const t = ocrStat(); t.scans++;
-  const diag = [], t0 = Date.now(), tk = () => ((Date.now() - t0) / 1000).toFixed(1) + "s";
-  let stream = null, stage = "เปิดกล้อง", lastNum = "", lastName = "", usePick = false;
-  const votes = {}, nameVotes = {}, any = {};
-  camStop = false;
-  $("camx").onclick = () => { camStop = true; };
-  $("camp").onclick = () => { usePick = true; camStop = true; };
-  ov.style.display = "block"; document.body.style.overflow = "hidden"; say("กำลังเปิดกล้อง...");
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { setScan(n, "เครื่องนี้เปิดกล้องในหน้านี้ไม่ได้ ใช้ปุ่ม “ถ่ายรูป/เลือกรูปจากเครื่องแทน”"); return; }
+  camBusy = true;
+  const t = ocrStat(), diag = [], t0 = Date.now(), tk = () => ((Date.now() - t0) / 1000).toFixed(1) + "s";
+  let stream = null, stage = "เปิดกล้อง", card = null, numText = "", nameText = "", action = "";
+  const dg = document.querySelector(`.scandiag[data-p="${n}"]`), raw = document.querySelector(`.scanraw[data-p="${n}"]`);
+  const flush = () => { if (dg) dg.textContent = diag.join("\n") + "\n--- ผลดิบแถบเลข (ปิดข้อมูล) ---\n" + maskText(numText) + "\n--- ผลดิบแถบชื่อ (ปิดข้อมูล) ---\n" + maskText(nameText); if (raw) raw.textContent = numText + "\n" + nameText; };
+  const flash = ids => ids.filter(Boolean).forEach(id => { const el = $(id); el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 2500); });
+  const wait = () => new Promise(res => { $("camx").onclick = () => res("cancel"); $("camp").onclick = () => res("pick"); $("camshot").onclick = () => res("shot"); });
+  ov.style.display = "block"; document.body.style.overflow = "hidden"; $("camshot").disabled = false; say("กำลังเปิดกล้อง...");
   try {
     diag.push("อุปกรณ์: " + ((navigator.userAgent.match(/iPhone|iPad|Android|Windows|Macintosh/) || ["?"])[0]) + (/Line\//.test(navigator.userAgent) ? " (LINE)" : ""));
     stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: {ideal: "environment"}, width: {ideal: 1920}, height: {ideal: 1080}}, audio: false});
     vid.srcObject = stream; await vid.play().catch(() => {});
     try { await stream.getVideoTracks()[0].applyConstraints({advanced: [{focusMode: "continuous"}]}); } catch (e) {}
-    stage = "โหลดตัวอ่านภาษาไทย"; say("กำลังโหลดตัวอ่าน (ครั้งแรกอาจใช้เวลา)\nวางบัตรให้เต็มกรอบไว้ก่อน");
-    ocrLog = m => { if (m.progress != null && /load|initializ/i.test(m.status || "")) say(`กำลังโหลดตัวอ่าน ${Math.round(m.progress * 100)}%\nวางบัตรให้เต็มกรอบไว้ก่อน`); };
-    const w = await withTimeout(getOcr(), 180000, "โหลดตัวอ่าน"); diag.push(`โหลดตัวอ่านแล้ว (${tk()})`);
-    stage = "อ่านเฟรม"; let frame = 0, lockedAt = 0, locked = "";
-    while (!camStop && Date.now() - t0 < 90000) {
-      if (!vid.videoWidth) { await new Promise(r => setTimeout(r, 200)); continue; }
-      frame++;
-      const g = $("camg").getBoundingClientRect(), vr = vid.getBoundingClientRect(), sc = Math.max(vr.width / vid.videoWidth, vr.height / vid.videoHeight);
-      const sx = ((g.left - vr.left) + (vid.videoWidth * sc - vr.width) / 2) / sc, sy = ((g.top - vr.top) + (vid.videoHeight * sc - vr.height) / 2) / sc, sw = g.width / sc, sh = g.height / sc;
-      const card = document.createElement("canvas"); card.width = 1400; card.height = Math.round(1400 / 1.585);
-      card.getContext("2d").drawImage(vid, sx, sy, sw, sh, 0, 0, card.width, card.height);
-      // เลขบัตร: อ่านเฉพาะตัวเลขในแถบบนของบัตร
-      const nb = bandCanvas(card, BANDS.num); await w.setParameters(DIGITS);
-      const rn = await w.recognize(nb); lastNum = rn.data.text || ""; nb.width = nb.height = 0;
-      idHits(lastNum).forEach(h => { any[h.id] = (any[h.id] || 0) + 1; if (h.valid && (h.grouped || true)) votes[h.id] = (votes[h.id] || 0) + (h.grouped ? 2 : 1); });
-      // ชื่อ: อ่านแถบชื่อ (ทุกเฟรมจนกว่าจะได้ แล้วเว้นเฟรมเว้นเฟรม)
-      if (!Object.keys(nameVotes).length || frame % 2 === 0) {
-        const nm = bandCanvas(card, BANDS.name); await resetParams(w);
-        const rm = await w.recognize(nm); lastName = rm.data.text || ""; nm.width = nm.height = 0;
-        const nmv = parseName(lastName) || parseNameLoose(lastName); if (nmv) nameVotes[nmv] = (nameVotes[nmv] || 0) + 1;
-      }
-      card.width = card.height = 0;
-      const top = Object.entries(votes).sort((a, b) => b[1] - a[1])[0];
-      if (top && top[1] >= 3 && !locked) { locked = top[0]; lockedAt = frame; }
-      say(`กำลังอ่าน... เฟรม ${frame}\nเลขที่ผ่านตรวจ: ${top ? "พบแล้ว" : "ยังไม่พบ"} · ชื่อ: ${Object.keys(nameVotes).length ? "พบแล้ว" : "ยังไม่พบ"}\nวางบัตรให้เต็มกรอบ ไม่ให้เงาหรือแสงสะท้อน`);
-      if (locked && (Object.keys(nameVotes).length || frame - lockedAt >= 3)) break;
-      await new Promise(r => setTimeout(r, 120));
-    }
-    await resetParams(w);
-    diag.push(`อ่านทั้งหมด ${frame} เฟรม (${tk()}) · เลขผ่านตรวจที่พบ ${Object.keys(votes).length} แบบ · ชื่อที่พบ ${Object.keys(nameVotes).length} แบบ`);
-    if (usePick) { document.querySelector(`.scanf[data-p="${n}"]`).click(); setScan(n, "เปลี่ยนเป็นถ่ายรูป/เลือกรูปจากเครื่อง"); return; }
-    stage = "เติมข้อมูลลงฟอร์ม";
-    const topV = Object.entries(votes).sort((a, b) => b[1] - a[1])[0], topA = Object.entries(any).sort((a, b) => b[1] - a[1])[0];
-    const valid = topV ? topV[0] : "", cid = valid || (topA ? topA[0] : ""), name = (Object.entries(nameVotes).sort((a, b) => b[1] - a[1])[0] || [""])[0], msgs = [];
+    ocrLog = m => { if (m.progress != null && /load|initializ/i.test(m.status || "")) say(`กำลังเตรียมตัวอ่าน ${Math.round(m.progress * 100)}% (วางบัตรให้เต็มกรอบได้เลย)`); };
+    const eP = getOcrEng(); eP.catch(() => {});   // เตรียมตัวอ่านไว้ล่วงหน้าระหว่างจัดบัตรเข้ากรอบ
+    say("วางบัตรให้เต็มกรอบ ไม่ให้เงาหรือแสงสะท้อน แล้วกด “ถ่ายภาพ”");
+    action = await wait();
+    if (action !== "shot") { if (action === "pick") document.querySelector(`.scanf[data-p="${n}"]`).click(); return; }
+    t.scans++; $("camshot").disabled = true; stage = "ถ่ายภาพ";
+    if (!vid.videoWidth) throw new Error("กล้องยังไม่พร้อม");
+    const g = $("camg").getBoundingClientRect(), vr = vid.getBoundingClientRect(), sc = Math.max(vr.width / vid.videoWidth, vr.height / vid.videoHeight);
+    const sx = ((g.left - vr.left) + (vid.videoWidth * sc - vr.width) / 2) / sc, sy = ((g.top - vr.top) + (vid.videoHeight * sc - vr.height) / 2) / sc;
+    card = document.createElement("canvas"); card.width = 1600; card.height = Math.round(1600 / 1.585);
+    card.getContext("2d").drawImage(vid, sx, sy, g.width / sc, g.height / sc, 0, 0, card.width, card.height);
+    vid.pause(); stream.getTracks().forEach(tr => tr.stop()); stream = null;
+    diag.push(`ถ่ายภาพแล้ว ${card.width}x${card.height} (${tk()})`);
+    // ภาพสำหรับเทียบด้วยสายตา (แสดงบนหน้าจอเท่านั้น ไม่เก็บ) ล้างเมื่อบันทึก/เคสซ้อน
+    const pv = document.createElement("canvas"); pv.width = 900; pv.height = Math.round(900 * 0.5 / 1.585);
+    pv.getContext("2d").drawImage(card, 0, 0, card.width, card.height * 0.5, 0, 0, pv.width, pv.height);
+    const img = document.querySelector(`.scanpv[data-p="${n}"]`); if (img) { img.src = pv.toDataURL("image/jpeg", 0.85); img.style.display = "block"; } pv.width = pv.height = 0;
+    stage = "อ่านเลขบัตร"; say("กำลังอ่านเลขบัตร...");
+    const w = await withTimeout(getOcrEng(), 180000, "โหลดตัวอ่าน"); diag.push(`ตัวอ่านพร้อม (${tk()})`);
+    const rn = await readNumber(card, w, say); numText = rn.lastText; rn.log.forEach(l => diag.push(l)); diag.push(`อ่านเลขเสร็จ (${tk()})`);
+    const msgs = [], cid = rn.valid || rn.best;
     if (cid) { $(`p${n}_cid`).value = cid; $(`p${n}_cid`).dispatchEvent(new Event("input", {bubbles: true})); }
-    if (valid) { t.idOk++; msgs.push("✓ เลขบัตรผ่านการตรวจสอบ"); } else if (cid) { t.idBad++; msgs.push("⚠️ เลขบัตรไม่ผ่านการตรวจสอบ ตรวจกับบัตรอีกครั้ง"); } else { t.noId++; msgs.push("⚠️ อ่านเลขบัตรไม่ได้ ลองใหม่หรือพิมพ์เอง"); }
-    if (name) { $(`p${n}_name`).value = name; $(`p${n}_name`).dispatchEvent(new Event("input", {bubbles: true})); ocrName[n] = name; t.nameFilled++; msgs.push("ตรวจชื่อให้ตรงกับบัตร (ภาษาไทยอาจเพี้ยน)"); } else msgs.push("อ่านชื่อไม่ได้ พิมพ์เอง");
+    if (rn.valid) { t.idOk++; msgs.push("✓ เลขบัตรผ่านการตรวจสอบ"); } else if (cid) { t.idBad++; msgs.push("⚠️ เลขบัตรไม่ผ่านการตรวจสอบ เทียบกับภาพบัตรด้านล่าง"); } else { t.noId++; msgs.push("⚠️ อ่านเลขบัตรไม่ได้ ถ่ายใหม่หรือพิมพ์เอง"); }
+    flash([rn.valid || !cid ? null : `p${n}_cid`]);
+    ov.style.display = "none"; document.body.style.overflow = "";   // ปิดหน้ากล้อง แล้วอ่านชื่อต่อเบื้องหลัง
+    if (LS.get("ems_ocr_name", true)) {
+      stage = "อ่านชื่อ"; setScan(n, msgs.join(" · ") + " · กำลังอ่านชื่อ...");
+      ocrLog = m => { if (m.progress != null && /load|initializ/i.test(m.status || "")) setScan(n, `${msgs.join(" · ")} · เตรียมตัวอ่านชื่อ ${Math.round(m.progress * 100)}%`); };
+      const w2 = await withTimeout(getOcr(), 180000, "โหลดตัวอ่านภาษาไทย");
+      const rm = await readName(card, w2); nameText = rm.text; diag.push(`อ่านชื่อเสร็จ (${tk()})`);
+      if (rm.name) { $(`p${n}_name`).value = rm.name; $(`p${n}_name`).dispatchEvent(new Event("input", {bubbles: true})); ocrName[n] = rm.name; t.nameFilled++; msgs.push("ตรวจชื่อให้ตรงกับบัตร (ภาษาไทยอาจเพี้ยน)"); flash([`p${n}_name`]); } else msgs.push("อ่านชื่อไม่ได้ พิมพ์เอง");
+    }
     msgs.push("กรอกเพศและอายุเอง"); setScan(n, msgs.join(" · "));
-    [valid || !cid ? null : `p${n}_cid`, name ? `p${n}_name` : null].filter(Boolean).forEach(id => { const el = $(id); el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 2500); });
   } catch (e) {
     const denied = e && /NotAllowed|Permission|Denied/i.test(e.name + e.message);
     diag.push(`✗ ล้มเหลวที่ขั้น "${stage}": ${errMsg(e)}`);
-    setScan(n, denied ? "ยังไม่ได้อนุญาตให้ใช้กล้องในหน้านี้ ใช้ปุ่ม “ถ่ายรูป/เลือกรูปจากเครื่องแทน” ได้" : `สแกนไม่สำเร็จที่ขั้น "${stage}": ${errMsg(e)} · พิมพ์เองหรือใช้ปุ่มถ่ายรูปแทนได้`);
-    try { if (ocrW) await resetParams(ocrW); } catch (x) {}
+    setScan(n, denied ? "ยังไม่ได้อนุญาตให้ใช้กล้องในหน้านี้ ใช้ปุ่ม “ถ่ายรูป/เลือกรูปจากเครื่องแทน” ได้" : `ไม่สำเร็จที่ขั้น "${stage}": ${errMsg(e)} · พิมพ์เองหรือใช้ปุ่มเลือกรูปแทนได้`);
+    try { for (const x of [ocrE, ocrW]) if (x) await resetParams(x); } catch (x) {}
   } finally {
     if (stream) stream.getTracks().forEach(tr => tr.stop());
     vid.srcObject = null; ov.style.display = "none"; document.body.style.overflow = "";
-    const dg = document.querySelector(`.scandiag[data-p="${n}"]`), raw = document.querySelector(`.scanraw[data-p="${n}"]`);
-    if (dg) dg.textContent = diag.join("\n") + "\n--- ผลดิบแถบเลข (ปิดข้อมูล) ---\n" + maskText(lastNum) + "\n--- ผลดิบแถบชื่อ (ปิดข้อมูล) ---\n" + maskText(lastName);
-    if (raw) raw.textContent = lastNum + "\n" + lastName;
-    LS.set("ems_ocr_stats", t); showStat();
+    if (card) card.width = card.height = 0;   // ทิ้งภาพทันที ไม่เก็บ
+    flush(); LS.set("ems_ocr_stats", t); showStat(); camBusy = false;
   }
 }
 async function selfTest() {   // ทดสอบตัวอ่านด้วยรูปตัวเลขที่สร้างเอง ไม่ใช้ข้อมูลบัตร
@@ -718,7 +765,7 @@ async function selfTest() {   // ทดสอบตัวอ่านด้ว�
   try {
     show("1/3 โหลดสคริปต์ตัวอ่าน..."); if (!window.Tesseract) await withTimeout(loadScript(OCR_SRC), 40000, "โหลดสคริปต์ตัวอ่าน"); steps.push("✓ โหลดสคริปต์ตัวอ่าน " + tk());
     ocrLog = m => { if (m.progress != null) show(`2/3 เตรียมตัวอ่านและไฟล์ภาษาไทย... ${m.status || ""} ${Math.round(m.progress * 100)}%`); };
-    show("2/3 เตรียมตัวอ่านและไฟล์ภาษาไทย (ครั้งแรกอาจนาน)..."); const w = await withTimeout(getOcr(), 180000, "โหลดไฟล์ภาษา"); steps.push("✓ เตรียมตัวอ่านและไฟล์ภาษา " + tk());
+    show("2/3 เตรียมตัวอ่านเลขบัตร (ครั้งแรกอาจนาน)..."); const w = await withTimeout(getOcrEng(), 180000, "โหลดไฟล์ภาษา"); steps.push("✓ เตรียมตัวอ่านเลขบัตร " + tk());
     show("3/3 ลองอ่านเลขทดสอบ...");
     const c = document.createElement("canvas"); c.width = 1000; c.height = 180; const x = c.getContext("2d");
     x.fillStyle = "#fff"; x.fillRect(0, 0, 1000, 180); x.fillStyle = "#000"; x.font = "bold 96px sans-serif"; x.textBaseline = "middle"; x.fillText("1 2345 67890 12 3", 30, 92);
@@ -730,12 +777,13 @@ async function selfTest() {   // ทดสอบตัวอ่านด้ว�
   finally { $("octest").disabled = false; }
 }
 document.addEventListener("click", e => {
-  const b = e.target.closest(".scan"); if (b) { scanLive(b.dataset.p); return; }
+  const b = e.target.closest(".scan"); if (b) { shootCard(b.dataset.p); return; }
   const k = e.target.closest(".scanpick"); if (k) document.querySelector(`.scanf[data-p="${k.dataset.p}"]`).click();
 });
 document.addEventListener("change", e => {
   const f = e.target;
   if (f.classList && f.classList.contains("scanf")) { const file = f.files && f.files[0]; f.value = ""; if (file) scanCard(f.dataset.p, file); return; }
+  if (f.classList && f.classList.contains("ocrname")) { LS.set("ems_ocr_name", f.checked); document.querySelectorAll(".ocrname").forEach(x => x.checked = f.checked); return; }
   const m = /^p(\d+)_name$/.exec(f.id || "");
   if (m && ocrName[m[1]] !== undefined && f.value !== ocrName[m[1]]) { const t = ocrStat(); t.nameEdited++; LS.set("ems_ocr_stats", t); delete ocrName[m[1]]; showStat(); }
 });
@@ -828,7 +876,7 @@ async function doSave(data) {
   data.op_no = curOp = curOp || genOp();   // เลขเคสเดิม = เขียนทับเคสเดิมใน Sheet
   try {
     await fetch(GAS_URL, {method: "POST", mode: "no-cors", headers: {"Content-Type": "text/plain"}, body: JSON.stringify({idToken: liff.getIDToken(), data})});
-    clearTimeout(dT); LS.del(DK);
+    clearTimeout(dT); LS.del(DK); clearPreviews();
     msg(editing ? "บันทึกการแก้ไขแล้ว ✓" : "บันทึกแล้ว ✓", 1); showSummary(data);
   } catch (e) { msg("บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง"); $("save").disabled = false; }
 }
