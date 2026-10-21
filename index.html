@@ -95,7 +95,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 </style>
 </head>
 <body>
-<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.15 (ทดลองถ่ายบัตร)</p></header>
+<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.16 (ทดลองถ่ายบัตร)</p></header>
 <div id="msg"></div>
 
 <section class="card" style="--c:var(--red)">
@@ -204,9 +204,14 @@ const msg = (t, ok) => { const m = $("msg"); m.textContent = t; m.style.display 
 chips("mode", "radio", ["ALS", "BLS"]);
 chips("dest", "radio", ["รพ.ชะอำ", "รพ.หัวหิน", "รพ.กรุงเทพหัวหิน", "รพ.ซานเปาโลหัวหิน"]);
 /* กดซ้ำที่ตัวเลือกเดิม = ยกเลิกการเลือก */
-document.querySelectorAll('input[name="dest"]').forEach(r => {
-  r.addEventListener("mousedown", () => r.dataset.was = r.checked ? "1" : "");
-  r.addEventListener("click", () => { if (r.dataset.was) r.checked = false; });
+// จดสถานะก่อนแตะ (ที่ระดับเอกสาร เพราะตัวเลือกเป็นป้ายที่ครอบช่องซ่อนอยู่ แตะบนมือถือจึงไม่ผ่านช่องโดยตรง)
+document.addEventListener("pointerdown", e => {
+  const lb = e.target.closest && e.target.closest("label"), r = lb && lb.querySelector('input[name="dest"]');
+  if (r) r.dataset.was = r.checked ? "1" : "";
+}, true);
+document.addEventListener("click", e => {
+  const r = e.target;
+  if (r && r.tagName === "INPUT" && r.name === "dest" && r.dataset.was) { r.dataset.was = ""; r.checked = false; r.dispatchEvent(new Event("change", {bubbles: true})); }
 });
 chips("ev", "checkbox", ["อุบัติเหตุจราจร", "อุบัติเหตุทั่วไป", "ป่วยฉุกเฉิน", "กรณี ว.14", "ไม่มีเหตุ", "หน่วยงานอื่นนำส่ง"].map(v => [v, "var(--amber)", 1]));
 
