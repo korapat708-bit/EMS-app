@@ -95,7 +95,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 </style>
 </head>
 <body>
-<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.16 (ทดลองถ่ายบัตร)</p></header>
+<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.18 (ทดลองถ่ายบัตร)</p></header>
 <div id="msg"></div>
 
 <section class="card" style="--c:var(--red)">
@@ -306,7 +306,7 @@ ${f(n,"hn","HN")}
 <label for="p${n}_sym">อาการ</label><div class="sy" data-p="${n}" data-k="sym"></div><textarea id="p${n}_sym" rows="2" placeholder="แตะกลุ่มอาการด้านบน หรือพิมพ์เพิ่มเอง"></textarea><button type="button" class="es" data-k="sym">✏️ เพิ่ม/ลดกลุ่มอาการ</button>
 <label>V/S</label>
 <div class="fl" style="margin-bottom:8px"><input id="p${n}_bp_s" inputmode="numeric" placeholder="BP บน"><b>/</b><input id="p${n}_bp_d" inputmode="numeric" placeholder="BP ล่าง" style="flex:1;width:auto"></div>
-<div class="g2">${f(n,"p","P",'inputmode="numeric"')}${f(n,"r","R",'inputmode="numeric"')}${f(n,"o2","O2sat",'inputmode="numeric"')}${f(n,"dtx","DTX",'inputmode="numeric"')}</div>
+<div class="g2">${f(n,"p","P",'inputmode="numeric"')}${f(n,"r","R",'inputmode="numeric"')}${f(n,"o2","O2sat",'inputmode="numeric"')}${f(n,"dtx","DTX",'inputmode="numeric"')}${f(n,"temp","Temp (°C)",'inputmode="decimal" placeholder="เช่น 37.5"')}</div>
 <label>GCS</label>
 <div class="g3"><div><label for="p${n}_gcs_e">E (1-4)</label><select id="p${n}_gcs_e">${op(1,4)}</select></div><div><label for="p${n}_gcs_v">V (1-5)</label><select id="p${n}_gcs_v">${op(1,5)}</select></div><div><label for="p${n}_gcs_m">M (1-6)</label><select id="p${n}_gcs_m">${op(1,6)}</select></div></div>
 <label for="p${n}_tx">การรักษา</label><div class="sy" data-p="${n}" data-k="tx"></div><textarea id="p${n}_tx" rows="2" placeholder="แตะกลุ่มการรักษาด้านบน หรือพิมพ์เพิ่มเอง"></textarea><button type="button" class="es" data-k="tx">✏️ เพิ่ม/ลดกลุ่มการรักษา</button>`;
@@ -834,6 +834,7 @@ function validate(d) {
     if (!p("age")) w(`${who}: ยังไม่ได้ใส่อายุ`, `p${n}_age`);
     else if (+p("age") > 110 || +p("age") < 0) w(`${who}: อายุ ${p("age")} ผิดปกติหรือไม่`, `p${n}_age`);
     if (!p("sym")) w(`${who}: ยังไม่ได้ใส่อาการ`, `p${n}_sym`);
+    if (p("temp") && !(+p("temp") >= 30 && +p("temp") <= 43)) w(`${who}: Temp ${p("temp")} ผิดปกติหรือไม่ (ปกติบันทึกเป็น °C เช่น 37.5)`, `p${n}_temp`);
     if (!p("hn")) N.push(`${who}: HN ยังว่าง (เติมทีหลังได้)`);
   }
   if (!any) w("ยังไม่มีข้อมูลผู้ป่วย", "p1_name");
