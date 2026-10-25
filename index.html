@@ -95,7 +95,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 </style>
 </head>
 <body>
-<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.18 (ทดลองถ่ายบัตร)</p></header>
+<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.21 (ทดลองถ่ายบัตร)</p></header>
 <div id="msg"></div>
 
 <section class="card" style="--c:var(--red)">
@@ -196,13 +196,13 @@ const UNIT    = "EMS CHA-AM";                                       // 3) ชื
 /* ================================================= */
 
 const $ = id => document.getElementById(id);
-const chip = (type, name, v, c, tx) => `<label style="--c:${c};${tx ? "--tx:#14243b" : ""}"><input type="${type}" name="${name}" value="${v}"><span>${v}</span></label>`;
+const chip = (type, name, v, c = "var(--blue)", tx) => `<label style="--c:${c};${tx ? "--tx:#14243b" : ""}"><input type="${type}" name="${name}" value="${v}"><span>${v}</span></label>`;
 const chips = (id, type, vals) => $(id).innerHTML = vals.map(v => chip(type, id, ...[].concat(v))).join("");
 let toastT;
 const msg = (t, ok) => { const m = $("msg"); m.textContent = t; m.style.display = "block"; m.style.background = ok ? "var(--ok)" : "var(--red)"; m.style.color = "#fff"; clearTimeout(toastT); toastT = setTimeout(() => m.style.display = "none", 6000); };
 
 chips("mode", "radio", ["ALS", "BLS"]);
-chips("dest", "radio", ["รพ.ชะอำ", "รพ.หัวหิน", "รพ.กรุงเทพหัวหิน", "รพ.ซานเปาโลหัวหิน"]);
+chips("dest", "radio", ["รพ.ชะอำ", "รพ.หัวหิน", "รพ.กรุงเทพหัวหิน", "รพ.ซานเปาโลหัวหิน", "รพ.ท่ายาง"]);
 /* กดซ้ำที่ตัวเลือกเดิม = ยกเลิกการเลือก */
 // จดสถานะก่อนแตะ (ที่ระดับเอกสาร เพราะตัวเลือกเป็นป้ายที่ครอบช่องซ่อนอยู่ แตะบนมือถือจึงไม่ผ่านช่องโดยตรง)
 document.addEventListener("pointerdown", e => {
@@ -295,7 +295,7 @@ const pt = n => `
 <button type="button" class="scanpick" data-p="${n}" style="width:100%;margin-bottom:6px;min-height:36px;font-size:13px;color:var(--mute);background:transparent">ถ่ายรูป/เลือกรูปจากเครื่องแทน</button>
 <input type="file" accept="image/*" capture="environment" class="scanf" data-p="${n}" hidden>
 <p class="scanst" data-p="${n}" style="margin:0 0 4px;font-size:13px;color:var(--mute)">วางบัตรให้เต็มกรอบแล้วกดถ่ายภาพ 1 ครั้ง · อ่านในเครื่อง ไม่อัปโหลดรูป · เพศและอายุกรอกเอง</p>
-<label style="display:block;margin:0 0 6px;font-size:13px;color:var(--mute)"><input type="checkbox" class="ocrname" ${LS.get("ems_ocr_name", true) ? "checked" : ""}> อ่านชื่อจากบัตรด้วย (ภาษาไทย แม่นน้อยกว่าและช้ากว่าเลขบัตร)</label>
+<label style="display:block;margin:0 0 6px;font-size:13px;color:var(--mute)"><input type="checkbox" class="ocrname" style="width:auto;min-height:0;display:inline-block;margin:0 6px 0 0;vertical-align:middle" ${LS.get("ems_ocr_name", true) ? "checked" : ""}> อ่านชื่อจากบัตรด้วย (ภาษาไทย แม่นน้อยกว่าและช้ากว่าเลขบัตร)</label>
 <img class="scanpv" data-p="${n}" alt="ภาพบัตรเพื่อเทียบ" style="display:none;width:100%;border-radius:8px;margin:0 0 6px">
 <p class="scanstat" style="margin:0 0 4px;font-size:12px;color:var(--mute)"></p>
 <details style="margin:0 0 8px"><summary style="font-size:12px;color:var(--mute)">ข้อมูลวินิจฉัยตัวอ่าน (ปิดข้อมูลส่วนบุคคลแล้ว)</summary><pre class="scandiag" data-p="${n}" style="white-space:pre-wrap;font-size:12px;margin:4px 0 0"></pre><details><summary style="font-size:12px;color:var(--red)">ผลดิบจริง (มีข้อมูลบัตร ห้ามส่งต่อ)</summary><pre class="scanraw" data-p="${n}" style="white-space:pre-wrap;font-size:12px;margin:4px 0 0"></pre></details></details>
