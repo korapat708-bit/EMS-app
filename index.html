@@ -95,7 +95,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 </style>
 </head>
 <body>
-<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.21 (ทดลองถ่ายบัตร)</p></header>
+<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.23 (ทดลองถ่ายบัตร)</p></header>
 <div id="msg"></div>
 
 <section class="card" style="--c:var(--red)">
@@ -285,7 +285,10 @@ document.addEventListener("click", e => {
   const c = e.target.closest(".sc"); if (c) toggleSym(c.parentNode.dataset.p, c.parentNode.dataset.k, c.dataset.s);
   const es = e.target.closest(".es"); if (es) openEd(es.dataset.k);
 });
-document.addEventListener("input", e => { const m = /^p(\d+)_(?:sym|tx)$/.exec(e.target.id || ""); if (m) markSym(m[1]); });
+document.addEventListener("input", e => {
+  const m = /^p(\d+)_(?:sym|tx)$/.exec(e.target.id || ""); if (m) markSym(m[1]);
+  if (/^p\d+_passport$/.test(e.target.id || "")) { const v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); if (v !== e.target.value) e.target.value = v; }   // พาสปอร์ต: ตัวพิมพ์ใหญ่และตัวเลขเท่านั้น
+});
 
 /* ผู้ป่วย */
 const op = (a, b) => "<option></option>" + Array.from({length: b-a+1}, (_, i) => `<option>${a+i}</option>`).join("");
@@ -302,6 +305,7 @@ const pt = n => `
 <label for="p${n}_name">ชื่อ-สกุล</label><input id="p${n}_name">
 <div class="g2"><div><label for="p${n}_sex">เพศ</label><select id="p${n}_sex"><option></option><option>ชาย</option><option>หญิง</option></select></div>${f(n,"age","อายุ (ปี)",'type="number" inputmode="numeric"')}</div>
 <label for="p${n}_cid">เลขบัตรประชาชน</label><input id="p${n}_cid" inputmode="numeric" maxlength="13">
+<div class="g2">${f(n,"nat","สัญชาติ (ต่างชาติ)",'autocomplete="off" maxlength="40" placeholder="พิมพ์สัญชาติ เช่น เมียนมา"')}${f(n,"passport","เลขพาสปอร์ต",'autocapitalize="characters" autocomplete="off" maxlength="20" placeholder="ถ้าไม่มีบัตร ปชช."')}</div>
 ${f(n,"hn","HN")}
 <label for="p${n}_sym">อาการ</label><div class="sy" data-p="${n}" data-k="sym"></div><textarea id="p${n}_sym" rows="2" placeholder="แตะกลุ่มอาการด้านบน หรือพิมพ์เพิ่มเอง"></textarea><button type="button" class="es" data-k="sym">✏️ เพิ่ม/ลดกลุ่มอาการ</button>
 <label>V/S</label>
@@ -458,11 +462,11 @@ function cardHTML(d) {
   let shown = 0;
   for (let n = 1; d["p" + n + "_name"] !== undefined; n++) {
     const p = k => d["p" + n + "_" + k] || "";
-    if (!["name", "cid", "age", "hn", "sym", "sex"].some(k => p(k))) continue;
+    if (!["name", "cid", "age", "hn", "sym", "sex", "passport", "nat"].some(k => p(k))) continue;
     shown++;
-    h += `<h3>ผู้ป่วยรายที่ ${shown}</h3><table>${kv("ชื่อ-สกุล", p("name"))}${kv("เลขบัตร ปชช.", fmtCid(p("cid")))}${kv("อายุ", p("age") && p("age") + " ปี")}${kv("HN", p("hn"))}${kv("อาการ", p("sym"))}</table>`;
+    h += `<h3>ผู้ป่วยรายที่ ${shown}</h3><table>${kv("ชื่อ-สกุล", p("name"))}${kv("เลขบัตร ปชช.", fmtCid(p("cid")))}${kv("สัญชาติ", p("nat"))}${kv("เลขพาสปอร์ต", p("passport"))}${kv("อายุ", p("age") && p("age") + " ปี")}${kv("HN", p("hn"))}${kv("อาการ", p("sym"))}</table>`;
   }
-  h += `<h3>ประเภทเหตุ</h3><table>${kv("เหตุการณ์", ev)}${kv("ทะเบียนรถผู้ประสบเหตุ", d.plate)}</table></div><div class="ft">มีชื่อ เลขบัตร และ HN ผู้ป่วย · เก็บเป็นความลับ · สร้างเมื่อ ${new Date().toLocaleString("th-TH", {dateStyle: "short", timeStyle: "short"})}</div>`;
+  h += `<h3>ประเภทเหตุ</h3><table>${kv("เหตุการณ์", ev)}${kv("ทะเบียนรถผู้ประสบเหตุ", d.plate)}</table></div><div class="ft">มีชื่อ เลขบัตร/พาสปอร์ต และ HN ผู้ป่วย · เก็บเป็นความลับ · สร้างเมื่อ ${new Date().toLocaleString("th-TH", {dateStyle: "short", timeStyle: "short"})}</div>`;
   return h;
 }
 async function showSummary(d) {
@@ -824,13 +828,14 @@ function validate(d) {
   for (let n = 1; n <= 20; n++) {
     const p = k => d["p" + n + "_" + k] || "";
     if (d["p" + n + "_name"] === undefined) break;
-    if (!["name", "cid", "sex", "age", "hn", "sym"].some(p)) continue;
+    if (!["name", "cid", "sex", "age", "hn", "sym", "passport", "nat"].some(p)) continue;
     any++;
     const who = `ผู้ป่วยรายที่ ${n}`;
     if (!p("name")) w(`${who}: ยังไม่ได้ใส่ชื่อ`, `p${n}_name`);
     if (p("cid") && !/^\d{13}$/.test(p("cid"))) w(`${who}: เลขบัตรไม่ครบ 13 หลัก (มี ${p("cid").length} หลัก)`, `p${n}_cid`);
     else if (p("cid") && !cidOk(p("cid"))) w(`${who}: เลขบัตรไม่ผ่านการตรวจเลขตรวจสอบ (อาจพิมพ์ผิด)`, `p${n}_cid`);
-    if (!p("cid")) N.push(`${who}: ยังไม่มีเลขบัตร`);
+    if (p("passport") && !/^[A-Z0-9]{6,12}$/.test(p("passport"))) w(`${who}: เลขพาสปอร์ตดูไม่ปกติ (ปกติ 6-12 ตัวอักษร/ตัวเลข)`, `p${n}_passport`);
+    if (!p("cid") && !p("passport")) N.push(`${who}: ยังไม่มีเลขบัตร/พาสปอร์ต`);
     if (!p("age")) w(`${who}: ยังไม่ได้ใส่อายุ`, `p${n}_age`);
     else if (+p("age") > 110 || +p("age") < 0) w(`${who}: อายุ ${p("age")} ผิดปกติหรือไม่`, `p${n}_age`);
     if (!p("sym")) w(`${who}: ยังไม่ได้ใส่อาการ`, `p${n}_sym`);
