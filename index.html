@@ -95,7 +95,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 </style>
 </head>
 <body>
-<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.23 (ทดลองถ่ายบัตร)</p></header>
+<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.24 (ทดลองถ่ายบัตร)</p></header>
 <div id="msg"></div>
 
 <section class="card" style="--c:var(--red)">
@@ -216,7 +216,7 @@ document.addEventListener("click", e => {
 chips("ev", "checkbox", ["อุบัติเหตุจราจร", "อุบัติเหตุทั่วไป", "ป่วยฉุกเฉิน", "กรณี ว.14", "ไม่มีเหตุ", "หน่วยงานอื่นนำส่ง"].map(v => [v, "var(--amber)", 1]));
 
 /* เวลา: [id เวลา, ชื่อ, id เลขไมล์ (ถ้ามี)] */
-const TM = [["t_call","รับแจ้งจากศูนย์"],["t_depart","ออกจาก รพ.","m_depart"],["t_scene","ถึงเหตุ","m_scene"],["t_leave","ออกจากเหตุ"],["t_hosp","ถึง รพ.","m_hosp"],["t_base","ถึงฐาน","m_base"]];
+const TM = [["t_call","รับแจ้งจากศูนย์"],["t_depart","ออกจาก รพ.","m_depart"],["t_arrive","เวลาจริงที่รถมาถึง"],["t_scene","ถึงเหตุ","m_scene"],["t_leave","ออกจากเหตุ"],["t_hosp","ถึง รพ.","m_hosp"],["t_base","ถึงฐาน","m_base"]];
 $("times").innerHTML = TM.map(([t,l,m]) => `<div class="t"><button type="button" data-t="${t}">⏱ ${l}</button><input type="time" id="${t}" aria-label="เวลา${l}">${m ? `<input class="m" id="${m}" inputmode="numeric" maxlength="6" placeholder="เลขไมล์" aria-label="เลขไมล์${l}">` : ""}</div>`).join("");
 const MILES = TM.filter(x => x[2]).map(x => x[2]);
 
