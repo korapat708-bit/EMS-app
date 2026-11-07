@@ -86,6 +86,8 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 #rv .bar{display:flex;gap:8px;position:sticky;bottom:0;z-index:2;margin:12px -12px -24px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#0a121e;border-top:1px solid #2a3a50}
 #rv .bar button{flex:1;font-weight:600}
 .flash{outline:3px solid #e5173f;outline-offset:2px;border-radius:8px}
+.dq{min-height:34px;padding:4px 14px;border-radius:999px;font-size:13px;background:transparent}
+.dq.on{background:var(--c);border-color:var(--c);color:#fff;font-weight:600}
 #cam{position:fixed;inset:0;z-index:40;background:#000;display:none}
 #cam video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 #camg{position:absolute;left:50%;top:42%;width:90%;max-width:560px;aspect-ratio:1.585;transform:translate(-50%,-50%);border:3px solid #fff;border-radius:14px;box-shadow:0 0 0 100vmax rgba(0,0,0,.55)}
@@ -95,8 +97,9 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 </style>
 </head>
 <body>
-<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.24 (ทดลองถ่ายบัตร)</p></header>
+<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.25 (ทดลองถ่ายบัตร)</p></header>
 <div id="msg"></div>
+<div id="cfgwarn" style="display:none;background:#e5173f;color:#fff;padding:10px 14px;font-size:14px"></div>
 
 <section class="card" style="--c:var(--red)">
   <h2>ข้อมูลทั่วไป</h2>
@@ -282,10 +285,16 @@ $("ed").addEventListener("click", e => { if (e.target === $("ed")) $("ed").style
 $("edstaff").addEventListener("click", () => openEd("staff"));
 $("edstaff3").addEventListener("click", () => openEd("staff3"));
 document.addEventListener("click", e => {
+  const q = e.target.closest(".dq");
+  if (q) { const inp = $("p" + q.parentNode.dataset.p + "_dtx"); inp.value = inp.value === q.dataset.v ? "" : q.dataset.v; inp.dispatchEvent(new Event("input", {bubbles: true})); return; }
   const c = e.target.closest(".sc"); if (c) toggleSym(c.parentNode.dataset.p, c.parentNode.dataset.k, c.dataset.s);
   const es = e.target.closest(".es"); if (es) openEd(es.dataset.k);
 });
+function markDq() {   // ไฮไลต์ปุ่ม High/Low ตามค่าในช่อง DTX
+  document.querySelectorAll(".dtxq").forEach(box => { const v = ($("p" + box.dataset.p + "_dtx") || {}).value; box.querySelectorAll(".dq").forEach(b => b.classList.toggle("on", b.dataset.v === v)); });
+}
 document.addEventListener("input", e => {
+  if (/^p\d+_dtx$/.test(e.target.id || "")) markDq();
   const m = /^p(\d+)_(?:sym|tx)$/.exec(e.target.id || ""); if (m) markSym(m[1]);
   if (/^p\d+_passport$/.test(e.target.id || "")) { const v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); if (v !== e.target.value) e.target.value = v; }   // พาสปอร์ต: ตัวพิมพ์ใหญ่และตัวเลขเท่านั้น
 });
@@ -310,7 +319,7 @@ ${f(n,"hn","HN")}
 <label for="p${n}_sym">อาการ</label><div class="sy" data-p="${n}" data-k="sym"></div><textarea id="p${n}_sym" rows="2" placeholder="แตะกลุ่มอาการด้านบน หรือพิมพ์เพิ่มเอง"></textarea><button type="button" class="es" data-k="sym">✏️ เพิ่ม/ลดกลุ่มอาการ</button>
 <label>V/S</label>
 <div class="fl" style="margin-bottom:8px"><input id="p${n}_bp_s" inputmode="numeric" placeholder="BP บน"><b>/</b><input id="p${n}_bp_d" inputmode="numeric" placeholder="BP ล่าง" style="flex:1;width:auto"></div>
-<div class="g2">${f(n,"p","P",'inputmode="numeric"')}${f(n,"r","R",'inputmode="numeric"')}${f(n,"o2","O2sat",'inputmode="numeric"')}${f(n,"dtx","DTX",'inputmode="numeric"')}${f(n,"temp","Temp (°C)",'inputmode="decimal" placeholder="เช่น 37.5"')}</div>
+<div class="g2">${f(n,"p","P",'inputmode="numeric"')}${f(n,"r","R",'inputmode="numeric"')}${f(n,"o2","O2sat",'inputmode="numeric"')}<div><label for="p${n}_dtx">DTX</label><input id="p${n}_dtx" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="mg/dL"><div class="dtxq" data-p="${n}" style="display:flex;gap:6px;margin-top:6px"><button type="button" class="dq" data-v="High">High</button><button type="button" class="dq" data-v="Low">Low</button></div></div>${f(n,"temp","Temp (°C)",'inputmode="decimal" placeholder="เช่น 37.5"')}</div>
 <label>GCS</label>
 <div class="g3"><div><label for="p${n}_gcs_e">E (1-4)</label><select id="p${n}_gcs_e">${op(1,4)}</select></div><div><label for="p${n}_gcs_v">V (1-5)</label><select id="p${n}_gcs_v">${op(1,5)}</select></div><div><label for="p${n}_gcs_m">M (1-6)</label><select id="p${n}_gcs_m">${op(1,6)}</select></div></div>
 <label for="p${n}_tx">การรักษา</label><div class="sy" data-p="${n}" data-k="tx"></div><textarea id="p${n}_tx" rows="2" placeholder="แตะกลุ่มการรักษาด้านบน หรือพิมพ์เพิ่มเอง"></textarea><button type="button" class="es" data-k="tx">✏️ เพิ่ม/ลดกลุ่มการรักษา</button>`;
@@ -424,7 +433,7 @@ function restoreDraft() {
   while (np < Math.min(d.np || 1, 20)) addPatient();
   Object.entries(d.vals).forEach(([id, v]) => { const el = $(id); if (el && v !== undefined) setVal(el, v); });
   Object.entries(d.checks || {}).forEach(([n, arr]) => document.querySelectorAll(`input[name="${n}"]`).forEach(c => c.checked = arr.includes(c.value)));
-  document.querySelectorAll(".sy").forEach(b => markSym(b.dataset.p));
+  document.querySelectorAll(".sy").forEach(b => markSym(b.dataset.p)); markDq();
   msg("กู้คืนข้อมูลที่กรอกค้างไว้แล้ว", 1);
 }
 $("octest").addEventListener("click", () => selfTest());
@@ -498,7 +507,7 @@ $("again").addEventListener("click", () => {
   [...$("pts").children].slice(1).forEach(el => el.remove()); np = 1; $("addp").textContent = "＋ เพิ่มผู้ป่วยรายที่ 2";
   document.querySelectorAll("input[id],select[id],textarea[id]").forEach(e => { if (!KEEP.includes(e.id)) e.value = ""; });
   document.querySelectorAll('input[name="ev"],input[name="dest"]').forEach(c => c.checked = false);
-  $("m_depart").value = prev; markSym(1);
+  $("m_depart").value = prev; markSym(1); markDq();
   $("ov").style.display = "none"; document.body.style.overflow = "";
   $("save").disabled = false; window.scrollTo(0, 0);
   msg(prev ? `พร้อมบันทึกเคสซ้อน · ไมล์ออกต่อจากเคสก่อน (${prev})` : "พร้อมบันทึกเคสซ้อน", 1);
@@ -839,6 +848,7 @@ function validate(d) {
     if (!p("age")) w(`${who}: ยังไม่ได้ใส่อายุ`, `p${n}_age`);
     else if (+p("age") > 110 || +p("age") < 0) w(`${who}: อายุ ${p("age")} ผิดปกติหรือไม่`, `p${n}_age`);
     if (!p("sym")) w(`${who}: ยังไม่ได้ใส่อาการ`, `p${n}_sym`);
+    if (p("dtx") && !/^(High|Low)$/.test(p("dtx")) && !(/^\d{1,3}$/.test(p("dtx")) && +p("dtx") >= 10 && +p("dtx") <= 600)) w(`${who}: DTX ${p("dtx")} ผิดปกติหรือไม่ (ใส่ตัวเลข mg/dL หรือเลือก High/Low)`, `p${n}_dtx`);
     if (p("temp") && !(+p("temp") >= 30 && +p("temp") <= 43)) w(`${who}: Temp ${p("temp")} ผิดปกติหรือไม่ (ปกติบันทึกเป็น °C เช่น 37.5)`, `p${n}_temp`);
     if (!p("hn")) N.push(`${who}: HN ยังว่าง (เติมทีหลังได้)`);
   }
@@ -884,16 +894,37 @@ $("save").addEventListener("click", () => {
 });
 async function doSave(data) {
   $("save").disabled = true; msg("กำลังบันทึก...", 1);
-  data.op_no = curOp = curOp || genOp();   // เลขเคสเดิม = เขียนทับเคสเดิมใน Sheet
+  data.op_no = curOp = curOp || genOp();   // เลขเคสเดิม = เขียนทับเคสเดิมใน Sheet (ส่งซ้ำได้ ไม่เกิดแถวซ้ำ)
+  const fail = t => { msg(t.split("\n")[0]); alert(t); $("save").disabled = false; saveDraft(); };
+  let tok = ""; try { tok = liff.getIDToken() || ""; } catch (e) {}
+  if (!tok) return fail("ยังไม่ได้เข้าสู่ระบบ LINE (ต้องเปิดจากลิงก์ LIFF ในแอป LINE และ LIFF ID ในไฟล์ต้องถูกต้อง)\nข้อมูลที่กรอกยังอยู่ ลองปิดแล้วเปิดแอปใหม่ แล้วกดบันทึกอีกครั้ง");
+  const body = JSON.stringify({idToken: tok, data}); let res = "", confirmed = true;
   try {
-    await fetch(GAS_URL, {method: "POST", mode: "no-cors", headers: {"Content-Type": "text/plain"}, body: JSON.stringify({idToken: liff.getIDToken(), data})});
-    clearTimeout(dT); LS.del(DK); clearPreviews();
-    msg(editing ? "บันทึกการแก้ไขแล้ว ✓" : "บันทึกแล้ว ✓", 1); showSummary(data);
-  } catch (e) { msg("บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง"); $("save").disabled = false; }
+    const r = await fetch(GAS_URL, {method: "POST", headers: {"Content-Type": "text/plain"}, body});
+    res = (await r.text()).trim();
+  } catch (e) {
+    if (navigator.onLine === false) return fail("ไม่มีอินเทอร์เน็ต บันทึกไม่สำเร็จ\nข้อมูลที่กรอกยังอยู่ เชื่อมต่อแล้วกดบันทึกอีกครั้ง");
+    confirmed = false;   // อ่านคำตอบกลับไม่ได้ → ส่งซ้ำแบบไม่รอคำตอบ (เลขเคสเดิมจึงไม่ซ้ำ)
+    try { await fetch(GAS_URL, {method: "POST", mode: "no-cors", headers: {"Content-Type": "text/plain"}, body}); } catch (e2) { return fail("ส่งข้อมูลไม่สำเร็จ ตรวจสัญญาณอินเทอร์เน็ตแล้วลองใหม่\nข้อมูลที่กรอกยังอยู่"); }
+  }
+  if (confirmed) {
+    if (res === "unauthorized") return fail("เข้าสู่ระบบ LINE หมดอายุ หรือ CHANNEL_ID ใน Code.gs ไม่ตรงกับช่อง LINE Login\nข้อมูลที่กรอกยังอยู่ ปิดแล้วเปิดแอปใหม่ แล้วกดบันทึกอีกครั้ง");
+    if (/^error/.test(res)) return fail("เซิร์ฟเวอร์แจ้งข้อผิดพลาด: " + res.slice(0, 140) + "\nข้อมูลที่กรอกยังอยู่ แจ้งผู้ดูแลระบบพร้อมข้อความนี้");
+    if (res !== "ok") return fail("เซิร์ฟเวอร์ตอบผิดปกติ (ตรวจว่า Deploy เป็นเวอร์ชันล่าสุดและสิทธิ์เป็น “ทุกคน”)\nข้อมูลที่กรอกยังอยู่");
+  }
+  clearTimeout(dT); LS.del(DK); clearPreviews();
+  msg(confirmed ? (editing ? "บันทึกการแก้ไขแล้ว ✓" : "บันทึกแล้ว ✓") : "ส่งข้อมูลแล้ว แต่ยืนยันผลไม่ได้ ตรวจใน Sheet อีกครั้ง", confirmed);
+  showSummary(data);
 }
 
 $("date").value = new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
 fillStaff(); restoreDraft(); showStat();
+(function () {   // เช็กค่าที่ต้องแก้ในไฟล์ ถ้ายังเป็นค่าตัวอย่างหรือรูปแบบผิดจะแจ้งทันที
+  const bad = [];
+  if (!/^\d{6,}-[A-Za-z0-9]{6,}$/.test(LIFF_ID)) bad.push("LIFF_ID");
+  if (!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(GAS_URL)) bad.push("GAS_URL");
+  if (bad.length) { const w = $("cfgwarn"); w.style.display = "block"; w.textContent = "⚠️ ไฟล์ index.html ยังตั้งค่า " + bad.join(" และ ") + " ไม่ถูกต้อง กรุณาแก้ที่ GitHub ก่อน จึงจะบันทึกเคสได้"; }
+})();
 liff.init({liffId: LIFF_ID}).then(async () => {
   if (!liff.isLoggedIn()) return liff.login();
   syncLists();
