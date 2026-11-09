@@ -108,7 +108,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 </style>
 </head>
 <body>
-<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.30 </p><p id="hdst" style="margin:6px 0 0;font-size:13px;cursor:pointer;opacity:.95">Sheet: กำลังตรวจ... (แตะเพื่อดูรายละเอียด)</p></header>
+<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.31 (ทดลองถ่ายบัตร)</p><p id="hdst" style="margin:6px 0 0;font-size:13px;cursor:pointer;opacity:.95">Sheet: กำลังตรวจ... (แตะเพื่อดูรายละเอียด)</p></header>
 <div id="msg"></div>
 <div id="cfgwarn" style="display:none;background:#e5173f;color:#fff;padding:10px 14px;font-size:14px"></div>
 
@@ -967,7 +967,7 @@ function fetchJsonp(q) {
   return new Promise((resolve, reject) => {
     const cb = "__ems" + Date.now() + Math.floor(Math.random() * 1e4), sc = document.createElement("script"); let t;
     const done = (v, err) => { clearTimeout(t); delete window[cb]; sc.remove(); err ? reject(err) : resolve(v); };
-    t = setTimeout(() => done(null, new Error("timeout")), 12000);
+    t = setTimeout(() => done(null, new Error("timeout")), 9000);
     window[cb] = v => done(v); sc.onerror = () => done(null, new Error("load"));
     sc.src = `${GAS_URL}?${q}&callback=${cb}&_=${Date.now()}`; document.head.appendChild(sc);
   });
@@ -999,17 +999,23 @@ function shReport(s) {
   if (warn.length) L.push("", ...warn.map(w => "⚠️ " + w));
   return {text: L.join("\n"), level: warn.length ? "warn" : true};
 }
+const OLD_MSG = "⚠️ เชื่อมต่อเซิร์ฟเวอร์ได้ แต่ Code.gs ยังเป็นเวอร์ชันเก่า (ยังไม่มีระบบเช็คสถานะ)\nวิธีแก้: วาง Code.gs ล่าสุดทับ (ใส่ SHEET_ID และ CHANNEL_ID กลับ) แล้ว Deploy → จัดการการทำให้ใช้งานได้ → ดินสอ → เวอร์ชันใหม่ → ทำให้ใช้งานได้";
+const DOWN_MSG = "✗ เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ (หมดเวลา)\nสาเหตุที่พบบ่อย: GAS_URL ในไฟล์ index.html ไม่ตรงกับ Web app URL ที่ใช้งานอยู่, สิทธิ์ไม่ใช่ “ทุกคน”, ยังไม่ได้ Deploy หรืออินเทอร์เน็ตมีปัญหา\nลองเปิด GAS_URL ต่อด้วย ?action=lists ในเบราว์เซอร์ ถ้าไม่ขึ้นรายชื่อ แปลว่าเป็นที่ URL/สิทธิ์";
+async function shFail() {   // status ไม่ตอบ: เช็คว่าเซิร์ฟเวอร์ยังตอบเรื่องรายชื่อได้ไหม เพื่อแยก "Code.gs เก่า" ออกจาก "ต่อไม่ได้เลย"
+  let alive = false; try { await fetchLists(); alive = true; } catch (e) {}
+  alive ? setSh(OLD_MSG, "warn", "⚠️ Code.gs เป็นเวอร์ชันเก่า") : setSh(DOWN_MSG, false);
+}
 async function shCheck() {
   setSh("กำลังตรวจ...", null);
   try { const op = LS.get("ems_last_op", ""), s = await fetchJsonp("action=status" + (op ? "&op=" + encodeURIComponent(op) : "")), r = shReport(s); setSh(r.text, r.level); return s; }
-  catch (e) { setSh("✗ เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ (หมดเวลา)\nสาเหตุที่พบบ่อย: ยังไม่ได้ Deploy Code.gs เวอร์ชันใหม่, สิทธิ์ไม่ใช่ “ทุกคน”, GAS_URL ไม่ตรง หรืออินเทอร์เน็ตมีปัญหา", false); }
+  catch (e) { await shFail(); }
 }
 async function shWrite() {
   if (!confirm("ทดสอบบันทึกจริง: ระบบจะเพิ่มแถวทดสอบ 1 แถวลงใน Sheet แล้วลบทิ้งทันที ดำเนินการต่อหรือไม่?")) return;
   setSh("กำลังทดสอบบันทึกจริง...", null);
   let tok = ""; try { tok = liff.getIDToken() || ""; } catch (e) {}
   if (!tok) return setSh("✗ ยังไม่ได้เข้าสู่ระบบ LINE: ต้องเปิดจากลิงก์ LIFF ในแอป LINE (และ LIFF ID ในไฟล์ต้องถูกต้อง)", false);
-  let prev = 0; try { const s0 = await fetchJsonp("action=status"); prev = (s0.lastPing && s0.lastPing.ts) || 0; } catch (e) { return setSh("✗ เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ (ตรวจ GAS_URL / Deploy / สิทธิ์ “ทุกคน”)", false); }
+  let prev = 0; try { const s0 = await fetchJsonp("action=status"); prev = (s0.lastPing && s0.lastPing.ts) || 0; } catch (e) { return shFail(); }
   const body = JSON.stringify({idToken: tok, action: "ping_write"}); let res = null;
   try {
     const t = (await (await fetch(GAS_URL, {method: "POST", headers: {"Content-Type": "text/plain"}, body})).text()).trim();
