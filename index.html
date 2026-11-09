@@ -108,7 +108,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 </style>
 </head>
 <body>
-<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.28 (ทดลองถ่ายบัตร)</p></header>
+<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.30 </p><p id="hdst" style="margin:6px 0 0;font-size:13px;cursor:pointer;opacity:.95">Sheet: กำลังตรวจ... (แตะเพื่อดูรายละเอียด)</p></header>
 <div id="msg"></div>
 <div id="cfgwarn" style="display:none;background:#e5173f;color:#fff;padding:10px 14px;font-size:14px"></div>
 
@@ -161,6 +161,10 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 
 <section class="card" id="birth" style="--c:#d6409f;display:none">
   <h2>ทารกที่คลอด</h2>
+  <label for="b_sex">เพศทารก</label>
+  <select id="b_sex"><option></option><option>ชาย</option><option>หญิง</option></select>
+  <div class="t"><button type="button" data-t="b_t_birth">⏱ เวลาคลอด</button><input type="time" id="b_t_birth" aria-label="เวลาคลอด"></div>
+  <div class="t"><button type="button" data-t="b_t_cord">⏱ เวลาตัดรก</button><input type="time" id="b_t_cord" aria-label="เวลาตัดรก"></div>
   <div class="g3"><div><label for="b_p">P</label><input id="b_p" inputmode="numeric"></div><div><label for="b_rr">RR</label><input id="b_rr" inputmode="numeric"></div><div><label for="b_o2">O2sat</label><input id="b_o2" inputmode="numeric"></div></div>
   <label>Apgar score (แตะคะแนนทีละข้อ ระบบรวมให้เอง)</label>
   <div id="apgar"><div class="aptabs" id="aptabs"></div><div id="apbody"></div><div id="apsum"></div><div id="apdata" hidden></div></div>
@@ -169,6 +173,13 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 <section class="card" style="--c:var(--red)">
   <h2>ทะเบียนรถผู้ประสบเหตุ</h2>
   <input id="plate" aria-label="ทะเบียนรถผู้ประสบเหตุ" placeholder="ถ้ามี เช่น กท 1234 (เว้นว่างได้)">
+</section>
+
+<section class="card" id="sheetst" style="--c:var(--teal)">
+  <h2>สถานะการเชื่อมต่อ Sheet</h2>
+  <p id="shst" style="white-space:pre-line;font-size:14px;margin:4px 0 8px;color:var(--mute)">ยังไม่ได้ตรวจ</p>
+  <div class="g2"><button type="button" id="shchk" style="color:var(--teal);border-color:var(--teal);background:transparent;font-weight:600">🔌 เช็คการเชื่อมต่อ</button><button type="button" id="shwrite" style="background:transparent">🧪 ทดสอบบันทึกจริง</button></div>
+  <p style="margin:8px 0 0;font-size:12px;color:var(--mute)">เช็คการเชื่อมต่อ = อ่านสถานะอย่างเดียว ไม่แก้ข้อมูล · ทดสอบบันทึกจริง = เพิ่มแถวทดสอบ 1 แถวลงใน Sheet แล้วลบทิ้งทันที (ต้องเปิดจากลิงก์ LIFF ในแอป LINE)</p>
 </section>
 
 <button type="button" id="clr" style="width:100%;margin:0 0 12px;color:var(--mute);background:transparent">🗑 ล้างฟอร์มทั้งหมด</button>
@@ -201,6 +212,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 
 <div id="ov">
   <p class="tip" id="tip">กำลังสร้างรูปสรุป...</p>
+  <p class="tip" id="vfy" style="font-size:13px;margin:0 0 8px"></p>
   <div id="card" class="sumcard"></div>
   <img id="img" alt="รูปสรุปเคส">
   <p class="tip" style="margin-top:12px;font-size:12px;opacity:.8">เคสซ้อน = ล้างข้อมูลเหตุเดิม คงวันที่ ALS/BLS ชื่อเจ้าหน้าที่ และใช้เลขไมล์ล่าสุดเป็นไมล์ออกของเคสใหม่<br>แก้ไขข้อมูล = กลับไปแก้ในฟอร์มเดิม บันทึกซ้ำจะเขียนทับเคสเดิมใน Sheet และได้รูปใหม่</p>
@@ -357,7 +369,7 @@ function addPatient() {
 const APG = [["app", "A · สีผิว (Appearance)", "เขียวทั้งตัว", "เขียวปลายมือปลายเท้า", "ผิวสีชมพู"], ["pul", "P · ชีพจร (Pulse)", "ไม่มี", "น้อยกว่า 100", "มากกว่า 100"], ["gri", "G · การตอบสนอง (Grimace)", "ไม่มีปฏิกิริยา", "แสยะปาก", "ร้องไห้ลั่น"], ["act", "A · กล้ามเนื้อ (Activity)", "อ่อนปวกเปียก", "ขยับขาเล็กน้อย", "ดิ้น"], ["res", "R · การหายใจ (Respiration)", "ไม่มี", "ร้องเบา", "ร้องดัง"]];
 const APK = APG.map(a => a[0]);
 const AP_MINS = [1, 5, 10, 15, 20, 25, 30];   // ประเมินนาทีที่ 1 และ 5 แล้วเพิ่มรอบถัดไปทุก 5 นาทีได้ (ถึงนาทีที่ 30)
-const BABY_KEYS = ["b_p", "b_rr", "b_o2", "b_apgar_more"].concat(AP_MINS.flatMap(m => [`b_apgar${m}`].concat(APK.map(k => `b_a${m}_${k}`))));
+const BABY_KEYS = ["b_sex", "b_t_birth", "b_t_cord", "b_p", "b_rr", "b_o2", "b_apgar_more"].concat(AP_MINS.flatMap(m => [`b_apgar${m}`].concat(APK.map(k => `b_a${m}_${k}`))));
 const BIRTH_CLEAR = BABY_KEYS.concat(["p1_gpa_g", "p1_gpa_p", "p1_gpa_a"]);
 $("apdata").innerHTML = AP_MINS.map(m => APK.map(k => `<input type="hidden" id="b_a${m}_${k}">`).join("") + `<input type="hidden" id="b_apgar${m}">`).join("");
 let apAct = 2, apCur = 1;   // จำนวนรอบที่เปิดอยู่ และรอบที่กำลังแก้ (นาที)
@@ -535,7 +547,7 @@ function cardHTML(d) {
   }
   if (BABY_KEYS.some(k => d[k])) {
     const ap = m => d["b_apgar" + m] ? kv(`Apgar ${m} นาที`, `${d["b_apgar" + m]}/10  (A${d[`b_a${m}_app`]} P${d[`b_a${m}_pul`]} G${d[`b_a${m}_gri`]} A${d[`b_a${m}_act`]} R${d[`b_a${m}_res`]})`) : "";
-    h += `<h3>ทารกที่คลอด</h3><table>${kv("P", d.b_p)}${kv("RR", d.b_rr)}${kv("O2sat", d.b_o2 && d.b_o2 + "%")}${AP_MINS.map(ap).join("")}</table>`;
+    h += `<h3>ทารกที่คลอด</h3><table>${kv("เพศ", d.b_sex)}${kv("เวลาคลอด", d.b_t_birth)}${kv("เวลาตัดรก", d.b_t_cord)}${kv("P", d.b_p)}${kv("RR", d.b_rr)}${kv("O2sat", d.b_o2 && d.b_o2 + "%")}${AP_MINS.map(ap).join("")}</table>`;
   }
   h += `<h3>ประเภทเหตุ</h3><table>${kv("เหตุการณ์", ev)}${kv("ทะเบียนรถผู้ประสบเหตุ", d.plate)}</table></div><div class="ft">มีชื่อ เลขบัตร/พาสปอร์ต และ HN ผู้ป่วย · เก็บเป็นความลับ · สร้างเมื่อ ${new Date().toLocaleString("th-TH", {dateStyle: "short", timeStyle: "short"})}</div>`;
   return h;
@@ -918,6 +930,8 @@ function validate(d) {
     if (!BABY_KEYS.some(k => d[k])) w("เคสคลอด: ยังไม่ได้กรอกข้อมูลทารก", "b_p");
     [["b_p", "P ทารก", 40, 220], ["b_rr", "RR ทารก", 10, 100], ["b_o2", "O2sat ทารก", 0, 100]].forEach(([k, l, lo, hi]) => { if (d[k] && !(+d[k] >= lo && +d[k] <= hi)) w(`${l} ${d[k]} ผิดปกติหรือไม่`, k); });
     AP_MINS.forEach(m => { const ks = APK.map(k => `b_a${m}_${k}`), n = ks.filter(k => d[k] !== undefined && d[k] !== "").length; if (n > 0 && n < 5) w(`Apgar นาทีที่ ${m}: กรอกไม่ครบ 5 ข้อ (กรอกแล้ว ${n} ข้อ)`, "apgar"); });
+    if (d.b_t_birth && d.b_t_cord && (mins(d.b_t_cord) - mins(d.b_t_birth) + 1440) % 1440 > 720) w(`เวลาตัดรก (${d.b_t_cord}) เร็วกว่าเวลาคลอด (${d.b_t_birth}) เรียงเวลาถูกไหม`, "b_t_cord");
+    if (!d.b_t_birth) N.push("เคสคลอด: ยังไม่ได้ใส่เวลาคลอด");
     if (!d.p1_gpa_g && !d.p1_gpa_p && !d.p1_gpa_a) N.push("เคสคลอด: ยังไม่ได้กรอก GPA ของมารดา");
   }
   if (!any) w("ยังไม่มีข้อมูลผู้ป่วย", "p1_name");
@@ -945,6 +959,86 @@ function goField(id) {
 $("rvback").addEventListener("click", closeReview);
 $("rvwarn").addEventListener("click", e => { const it = e.target.closest(".wi"); if (it) goField(rvWarns[+it.dataset.i].f); });
 $("rvgo").addEventListener("click", () => { closeReview(); doSave(rvData); });
+
+/* ===== สถานะการเชื่อมต่อ Sheet ===== */
+const EXPECT_MIN = 17;   // ฟอร์มรุ่นนี้ทำงานคู่กับ Code.gs Prototype 1.17 ขึ้นไป
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function fetchJsonp(q) {
+  return new Promise((resolve, reject) => {
+    const cb = "__ems" + Date.now() + Math.floor(Math.random() * 1e4), sc = document.createElement("script"); let t;
+    const done = (v, err) => { clearTimeout(t); delete window[cb]; sc.remove(); err ? reject(err) : resolve(v); };
+    t = setTimeout(() => done(null, new Error("timeout")), 12000);
+    window[cb] = v => done(v); sc.onerror = () => done(null, new Error("load"));
+    sc.src = `${GAS_URL}?${q}&callback=${cb}&_=${Date.now()}`; document.head.appendChild(sc);
+  });
+}
+function setSh(text, level, head) {   // level: true เขียว / "warn" เหลือง / false แดง / null กลาง
+  const e = $("shst"); e.textContent = text; e.style.color = level === true ? "var(--ok)" : level === "warn" ? "var(--amber)" : level === false ? "var(--red)" : "var(--mute)";
+  $("hdst").textContent = "Sheet: " + (head || (level === true ? "✓ เชื่อมต่อแล้ว" : level === "warn" ? "⚠️ เชื่อมต่อได้ มีข้อควรตรวจ" : level === false ? "✗ เชื่อมต่อไม่ได้" : "กำลังตรวจ...")) + " (แตะเพื่อดูรายละเอียด)";
+}
+function shReport(s) {
+  if (!s.ok) {
+    const L = ["✗ เชื่อมต่อ Sheet ไม่ได้" + (s.error ? ": " + s.error : "")];
+    if (s.cfg && !s.cfg.sheetId) L.push("SHEET_ID ใน Code.gs ยังเป็นค่าตัวอย่าง (บรรทัด 3)");
+    else L.push("ตรวจ SHEET_ID ใน Code.gs ให้ถูกต้อง และบัญชีที่ Deploy ต้องเข้าถึง Sheet นี้ได้");
+    return {text: L.join("\n"), level: false};
+  }
+  const L = [`✓ เชื่อมต่อ Sheet ได้ · ไฟล์ "${s.file}" · Code.gs ${s.ver}`], warn = [];
+  const tab = (name, t, extra) => L.push(!t || !t.exists ? `• แท็บ ${name}: ยังไม่มี (จะสร้างให้เองตอนบันทึกเคสถัดไป)` : `• แท็บ ${name}: ${t.rows} แถวข้อมูล${extra || ""}`);
+  tab("บันทึกเคส", s.raw, s.raw && s.raw.lastOp ? ` · เคสล่าสุด ${s.raw.lastOp}${s.raw.lastAt ? " (" + s.raw.lastAt + ")" : ""}` : "");
+  tab("สรุปส่งศูนย์", s.sum);
+  L.push(`• แท็บ ตั้งค่า: ${s.set && s.set.exists ? "มี" : "ยังไม่มี"}`);
+  const mine = LS.get("ems_last_op", "");
+  if (mine) { const r = (s.raw && s.raw.opRows) || [], m = (s.sum && s.sum.opRows) || []; L.push(r.length ? `• เคสล่าสุดจากเครื่องนี้ (${mine}): ✓ พบในแท็บบันทึกเคส แถว ${r.join(", ")}${m.length ? " · สรุปส่งศูนย์ แถว " + m.join(", ") : ""}` : `• เคสล่าสุดจากเครื่องนี้ (${mine}): ✗ ไม่พบในแท็บบันทึกเคส`); if (!r.length) warn.push("เคสล่าสุดจากเครื่องนี้ไม่อยู่ในแท็บบันทึกเคส"); }
+  if (s.lastPing) L.push(`• ผลทดสอบบันทึกจริงล่าสุด: ${s.lastPing.ok ? "✓ สำเร็จ" : "✗ " + (s.lastPing.error || "ล้มเหลว")} (${s.lastPing.at}${s.lastPing.ms ? ", " + s.lastPing.ms + " ms" : ""})`);
+  if (s.raw && s.raw.stray > 3) warn.push(`มีเนื้อหาอื่นค้างลึกกว่าแถวข้อมูลในแท็บบันทึกเคส ${s.raw.stray} แถว (รัน tidyRaw ใน Apps Script)`);
+  if (s.cfg && !s.cfg.channel) warn.push("CHANNEL_ID ใน Code.gs ยังเป็นค่าตัวอย่าง (บันทึกเคสจะไม่ผ่าน)");
+  const minor = +((/1\.(\d+)/.exec(s.ver || "") || [])[1] || 0);
+  if (minor < EXPECT_MIN) warn.push(`Code.gs เป็นเวอร์ชันเก่า (${s.ver}) ควร Deploy เวอร์ชันใหม่`);
+  if (s.lastPing && !s.lastPing.ok) warn.push("ทดสอบบันทึกจริงล่าสุดไม่สำเร็จ");
+  if (warn.length) L.push("", ...warn.map(w => "⚠️ " + w));
+  return {text: L.join("\n"), level: warn.length ? "warn" : true};
+}
+async function shCheck() {
+  setSh("กำลังตรวจ...", null);
+  try { const op = LS.get("ems_last_op", ""), s = await fetchJsonp("action=status" + (op ? "&op=" + encodeURIComponent(op) : "")), r = shReport(s); setSh(r.text, r.level); return s; }
+  catch (e) { setSh("✗ เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ (หมดเวลา)\nสาเหตุที่พบบ่อย: ยังไม่ได้ Deploy Code.gs เวอร์ชันใหม่, สิทธิ์ไม่ใช่ “ทุกคน”, GAS_URL ไม่ตรง หรืออินเทอร์เน็ตมีปัญหา", false); }
+}
+async function shWrite() {
+  if (!confirm("ทดสอบบันทึกจริง: ระบบจะเพิ่มแถวทดสอบ 1 แถวลงใน Sheet แล้วลบทิ้งทันที ดำเนินการต่อหรือไม่?")) return;
+  setSh("กำลังทดสอบบันทึกจริง...", null);
+  let tok = ""; try { tok = liff.getIDToken() || ""; } catch (e) {}
+  if (!tok) return setSh("✗ ยังไม่ได้เข้าสู่ระบบ LINE: ต้องเปิดจากลิงก์ LIFF ในแอป LINE (และ LIFF ID ในไฟล์ต้องถูกต้อง)", false);
+  let prev = 0; try { const s0 = await fetchJsonp("action=status"); prev = (s0.lastPing && s0.lastPing.ts) || 0; } catch (e) { return setSh("✗ เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ (ตรวจ GAS_URL / Deploy / สิทธิ์ “ทุกคน”)", false); }
+  const body = JSON.stringify({idToken: tok, action: "ping_write"}); let res = null;
+  try {
+    const t = (await (await fetch(GAS_URL, {method: "POST", headers: {"Content-Type": "text/plain"}, body})).text()).trim();
+    if (t === "unauthorized") return setSh("✗ เข้าสู่ระบบ LINE หมดอายุ หรือ CHANNEL_ID ใน Code.gs ไม่ตรงกับช่อง LINE Login\nปิดแล้วเปิดแอปใหม่ แล้วลองอีกครั้ง", false);
+    if (t === "bad action") return setSh("✗ Code.gs ยังเป็นเวอร์ชันเก่า (ไม่มีฟังก์ชันทดสอบ) ให้ Deploy เวอร์ชันใหม่", false);
+    try { const j = JSON.parse(t); if (j && j.ts) res = j; } catch (e) {}
+  } catch (e) {
+    try { await fetch(GAS_URL, {method: "POST", mode: "no-cors", headers: {"Content-Type": "text/plain"}, body}); } catch (e2) { return setSh("✗ ส่งคำขอไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองใหม่", false); }
+  }
+  for (let i = 0; !res && i < 4; i++) { await sleep(1800); try { const s = await fetchJsonp("action=status"); if (s.lastPing && s.lastPing.ts !== prev) res = s.lastPing; } catch (e) {} }
+  if (!res) return setSh("✗ ไม่ได้รับผลทดสอบ: อาจเข้าสู่ระบบ LINE หมดอายุ, CHANNEL_ID ใน Code.gs ไม่ตรง หรือ Code.gs ยังไม่ใช่เวอร์ชันล่าสุด\nปิดแล้วเปิดแอปใหม่ แล้วลองอีกครั้ง", false);
+  await shCheck();
+  const line = res.ok ? `✓ ทดสอบบันทึกจริงสำเร็จ (${res.at}, ${res.ms} ms) · เพิ่มและลบแถวทดสอบแล้ว` : `✗ ทดสอบบันทึกจริงไม่สำเร็จ: ${res.error || ""}`;
+  $("shst").textContent = line + "\n\n" + $("shst").textContent; if (!res.ok) { $("shst").style.color = "var(--red)"; $("hdst").textContent = "Sheet: ✗ เขียนไม่สำเร็จ (แตะเพื่อดูรายละเอียด)"; }
+}
+async function verifySaved(op) {   // หลังบันทึก: ตรวจว่าเคสลงใน Sheet จริง
+  const el = $("vfy"); el.textContent = "กำลังตรวจว่าเคสลงใน Sheet แล้ว..."; el.style.color = "#fff";
+  for (let i = 0; i < 3; i++) {
+    await sleep(i === 0 ? 1500 : 2500);
+    try {
+      const s = await fetchJsonp("action=status&op=" + encodeURIComponent(op));
+      if (s.ok && s.raw && s.raw.opRows && s.raw.opRows.length) { el.textContent = `✓ ยืนยันแล้ว เคสอยู่ใน Sheet (แท็บบันทึกเคส แถว ${s.raw.opRows.join(", ")})`; el.style.color = "#8ff0b8"; const r = shReport(s); setSh(r.text, r.level); return; }
+    } catch (e) {}
+  }
+  el.textContent = "⚠️ ยังไม่พบเคสนี้ใน Sheet ตอนนี้ (อาจยังเขียนไม่เสร็จ) กด “เช็คการเชื่อมต่อ” ท้ายหน้าอีกครั้ง หรือกด “แก้ไขข้อมูล” แล้วบันทึกซ้ำ (ไม่เกิดแถวซ้ำ)"; el.style.color = "#ffd27a"; shCheck();
+}
+$("shchk").addEventListener("click", shCheck);
+$("shwrite").addEventListener("click", shWrite);
+$("hdst").addEventListener("click", () => { $("sheetst").scrollIntoView({behavior: "smooth", block: "center"}); shCheck(); });
 
 /* บันทึก */
 const genOp = () => { const n = new Date(Date.now() + 7 * 36e5), p = x => String(x).padStart(2, "0"); return `${p(n.getUTCFullYear() % 100)}${p(n.getUTCMonth() + 1)}${p(n.getUTCDate())}-${p(n.getUTCHours())}${p(n.getUTCMinutes())}-${Math.random().toString(36).slice(2, 5).toUpperCase()}`; };
@@ -984,11 +1078,12 @@ async function doSave(data) {
   }
   clearTimeout(dT); LS.del(DK); clearPreviews();
   msg(confirmed ? (editing ? "บันทึกการแก้ไขแล้ว ✓" : "บันทึกแล้ว ✓") : "ส่งข้อมูลแล้ว แต่ยืนยันผลไม่ได้ ตรวจใน Sheet อีกครั้ง", confirmed);
-  showSummary(data);
+  LS.set("ems_last_op", data.op_no);
+  showSummary(data); verifySaved(data.op_no);
 }
 
 $("date").value = new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
-fillStaff(); restoreDraft(); showStat(); updateBirth(); updateApgar();
+fillStaff(); restoreDraft(); showStat(); updateBirth(); updateApgar(); shCheck();
 (function () {   // เช็กค่าที่ต้องแก้ในไฟล์ ถ้ายังเป็นค่าตัวอย่างหรือรูปแบบผิดจะแจ้งทันที
   const bad = [];
   if (!/^\d{6,}-[A-Za-z0-9]{6,}$/.test(LIFF_ID)) bad.push("LIFF_ID");
