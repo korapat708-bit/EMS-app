@@ -86,6 +86,17 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 #rv .bar{display:flex;gap:8px;position:sticky;bottom:0;z-index:2;margin:12px -12px -24px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#0a121e;border-top:1px solid #2a3a50}
 #rv .bar button{flex:1;font-weight:600}
 .flash{outline:3px solid #e5173f;outline-offset:2px;border-radius:8px}
+.apt{font-weight:600;font-size:15px}
+.aptabs{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.aptabs button{min-height:40px;padding:6px 12px;border-radius:999px;font-size:14px;background:transparent}
+.aptabs button.on{background:var(--c);border-color:var(--c);color:#fff;font-weight:600}
+.aptabs .add{border-style:dashed;color:var(--c);border-color:var(--c)}
+.apr{margin:12px 0 0}
+.apb3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}
+.apb{min-height:58px;padding:4px 2px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;white-space:normal;font-size:12px}
+.apb b{font-size:20px}.apb small{font-size:11px;color:var(--mute)}
+.apb.on{background:var(--c);border-color:var(--c);color:#fff}.apb.on small{color:#fff}
+#apsum{margin:12px 0 0;padding:8px 10px;border-radius:10px;background:var(--in);font-size:14px;font-weight:600}
 .dq{min-height:34px;padding:4px 14px;border-radius:999px;font-size:13px;background:transparent}
 .dq.on{background:var(--c);border-color:var(--c);color:#fff;font-weight:600}
 #cam{position:fixed;inset:0;z-index:40;background:#000;display:none}
@@ -97,7 +108,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 </style>
 </head>
 <body>
-<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.25 (ทดลองถ่ายบัตร)</p></header>
+<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.28 (ทดลองถ่ายบัตร)</p></header>
 <div id="msg"></div>
 <div id="cfgwarn" style="display:none;background:#e5173f;color:#fff;padding:10px 14px;font-size:14px"></div>
 
@@ -147,6 +158,13 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 
 <div id="pts"></div>
 <button type="button" id="addp" style="width:100%;margin:0 0 12px;border-color:var(--vio);color:var(--vio);font-weight:600">＋ เพิ่มผู้ป่วยรายที่ 2</button>
+
+<section class="card" id="birth" style="--c:#d6409f;display:none">
+  <h2>ทารกที่คลอด</h2>
+  <div class="g3"><div><label for="b_p">P</label><input id="b_p" inputmode="numeric"></div><div><label for="b_rr">RR</label><input id="b_rr" inputmode="numeric"></div><div><label for="b_o2">O2sat</label><input id="b_o2" inputmode="numeric"></div></div>
+  <label>Apgar score (แตะคะแนนทีละข้อ ระบบรวมให้เอง)</label>
+  <div id="apgar"><div class="aptabs" id="aptabs"></div><div id="apbody"></div><div id="apsum"></div><div id="apdata" hidden></div></div>
+</section>
 
 <section class="card" style="--c:var(--red)">
   <h2>ทะเบียนรถผู้ประสบเหตุ</h2>
@@ -216,7 +234,7 @@ document.addEventListener("click", e => {
   const r = e.target;
   if (r && r.tagName === "INPUT" && r.name === "dest" && r.dataset.was) { r.dataset.was = ""; r.checked = false; r.dispatchEvent(new Event("change", {bubbles: true})); }
 });
-chips("ev", "checkbox", ["อุบัติเหตุจราจร", "อุบัติเหตุทั่วไป", "ป่วยฉุกเฉิน", "กรณี ว.14", "ไม่มีเหตุ", "หน่วยงานอื่นนำส่ง"].map(v => [v, "var(--amber)", 1]));
+chips("ev", "checkbox", ["อุบัติเหตุจราจร", "อุบัติเหตุทั่วไป", "ป่วยฉุกเฉิน", "คลอด", "กรณี ว.14", "ไม่มีเหตุ", "หน่วยงานอื่นนำส่ง"].map(v => [v, "var(--amber)", 1]));
 
 /* เวลา: [id เวลา, ชื่อ, id เลขไมล์ (ถ้ามี)] */
 const TM = [["t_call","รับแจ้งจากศูนย์"],["t_depart","ออกจาก รพ.","m_depart"],["t_arrive","เวลาจริงที่รถมาถึง"],["t_scene","ถึงเหตุ","m_scene"],["t_leave","ออกจากเหตุ"],["t_hosp","ถึง รพ.","m_hosp"],["t_base","ถึงฐาน","m_base"]];
@@ -317,6 +335,7 @@ const pt = n => `
 <div class="g2">${f(n,"nat","สัญชาติ (ต่างชาติ)",'autocomplete="off" maxlength="40" placeholder="พิมพ์สัญชาติ เช่น เมียนมา"')}${f(n,"passport","เลขพาสปอร์ต",'autocapitalize="characters" autocomplete="off" maxlength="20" placeholder="ถ้าไม่มีบัตร ปชช."')}</div>
 ${f(n,"hn","HN")}
 <label for="p${n}_sym">อาการ</label><div class="sy" data-p="${n}" data-k="sym"></div><textarea id="p${n}_sym" rows="2" placeholder="แตะกลุ่มอาการด้านบน หรือพิมพ์เพิ่มเอง"></textarea><button type="button" class="es" data-k="sym">✏️ เพิ่ม/ลดกลุ่มอาการ</button>
+${n === 1 ? `<div class="gpa" style="display:none"><label>GPA (มารดา)</label><div class="g3"><div><label for="p1_gpa_g">G</label><input id="p1_gpa_g" inputmode="numeric" maxlength="2"></div><div><label for="p1_gpa_p">P</label><input id="p1_gpa_p" inputmode="numeric" maxlength="2"></div><div><label for="p1_gpa_a">A</label><input id="p1_gpa_a" inputmode="numeric" maxlength="2"></div></div></div>` : ""}
 <label>V/S</label>
 <div class="fl" style="margin-bottom:8px"><input id="p${n}_bp_s" inputmode="numeric" placeholder="BP บน"><b>/</b><input id="p${n}_bp_d" inputmode="numeric" placeholder="BP ล่าง" style="flex:1;width:auto"></div>
 <div class="g2">${f(n,"p","P",'inputmode="numeric"')}${f(n,"r","R",'inputmode="numeric"')}${f(n,"o2","O2sat",'inputmode="numeric"')}<div><label for="p${n}_dtx">DTX</label><input id="p${n}_dtx" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="mg/dL"><div class="dtxq" data-p="${n}" style="display:flex;gap:6px;margin-top:6px"><button type="button" class="dq" data-v="High">High</button><button type="button" class="dq" data-v="Low">Low</button></div></div>${f(n,"temp","Temp (°C)",'inputmode="decimal" placeholder="เช่น 37.5"')}</div>
@@ -335,6 +354,44 @@ function addPatient() {
   $("addp").textContent = `＋ เพิ่มผู้ป่วยรายที่ ${np + 1}`;
   return sec;
 }
+const APG = [["app", "A · สีผิว (Appearance)", "เขียวทั้งตัว", "เขียวปลายมือปลายเท้า", "ผิวสีชมพู"], ["pul", "P · ชีพจร (Pulse)", "ไม่มี", "น้อยกว่า 100", "มากกว่า 100"], ["gri", "G · การตอบสนอง (Grimace)", "ไม่มีปฏิกิริยา", "แสยะปาก", "ร้องไห้ลั่น"], ["act", "A · กล้ามเนื้อ (Activity)", "อ่อนปวกเปียก", "ขยับขาเล็กน้อย", "ดิ้น"], ["res", "R · การหายใจ (Respiration)", "ไม่มี", "ร้องเบา", "ร้องดัง"]];
+const APK = APG.map(a => a[0]);
+const AP_MINS = [1, 5, 10, 15, 20, 25, 30];   // ประเมินนาทีที่ 1 และ 5 แล้วเพิ่มรอบถัดไปทุก 5 นาทีได้ (ถึงนาทีที่ 30)
+const BABY_KEYS = ["b_p", "b_rr", "b_o2", "b_apgar_more"].concat(AP_MINS.flatMap(m => [`b_apgar${m}`].concat(APK.map(k => `b_a${m}_${k}`))));
+const BIRTH_CLEAR = BABY_KEYS.concat(["p1_gpa_g", "p1_gpa_p", "p1_gpa_a"]);
+$("apdata").innerHTML = AP_MINS.map(m => APK.map(k => `<input type="hidden" id="b_a${m}_${k}">`).join("") + `<input type="hidden" id="b_apgar${m}">`).join("");
+let apAct = 2, apCur = 1;   // จำนวนรอบที่เปิดอยู่ และรอบที่กำลังแก้ (นาที)
+const apVal = (m, k) => $(`b_a${m}_${k}`).value;
+const apTotal = m => { const v = APK.map(k => apVal(m, k)); return v.every(x => x !== "") ? v.reduce((a, x) => a + +x, 0) : null; };
+function renderApgar() {
+  const mins = AP_MINS.slice(0, apAct);
+  $("aptabs").innerHTML = mins.map(m => { const t = apTotal(m), n = APK.filter(k => apVal(m, k) !== "").length; return `<button type="button" data-m="${m}" class="${m === apCur ? "on" : ""}">${m} นาที${t !== null ? " · " + t : n ? " · " + n + "/5" : ""}</button>`; }).join("")
+    + (apAct < AP_MINS.length ? `<button type="button" class="add" id="apadd">＋ เพิ่มการประเมิน (นาทีที่ ${AP_MINS[apAct]})</button>` : "");
+  const m = apCur, last = AP_MINS[apAct - 1];
+  $("apbody").innerHTML = `<div class="apt" style="margin-top:6px">ประเมินนาทีที่ ${m}${m >= 10 && m === last ? ' <button type="button" id="apdel" style="min-height:30px;font-size:13px;color:var(--red);border-color:var(--red);background:transparent;margin-left:8px">ลบรอบนี้</button>' : ""}</div>`
+    + APG.map(([k, t, h0, h1, h2]) => `<div class="apr"><div class="apt">${t}</div><div class="apb3">${[h0, h1, h2].map((h, i) => `<button type="button" class="apb ${apVal(m, k) === String(i) ? "on" : ""}" data-k="${k}" data-v="${i}"><b>${i}</b><small>${h}</small></button>`).join("")}</div></div>`).join("");
+  $("apsum").textContent = "คะแนนรวม  " + mins.map(mm => { const t = apTotal(mm); return `${mm} นาที: ${t !== null ? t + "/10" : "—"}`; }).join(" · ");
+}
+function updateApgar() {   // รวมคะแนนอัตโนมัติ + เปิดรอบให้ครบตามข้อมูลที่มี (เช่น หลังกู้ฉบับร่าง)
+  AP_MINS.forEach(m => { const t = apTotal(m); $(`b_apgar${m}`).value = t !== null ? String(t) : ""; });
+  let hi = 1; AP_MINS.forEach((m, i) => { if (APK.some(k => apVal(m, k) !== "")) hi = i; });
+  apAct = Math.max(apAct, hi + 1, 2); if (apCur > AP_MINS[apAct - 1]) apCur = AP_MINS[0];
+  renderApgar();
+}
+$("apgar").addEventListener("click", e => {
+  const tab = e.target.closest("[data-m]"), pick = e.target.closest(".apb"), add = e.target.closest("#apadd"), del = e.target.closest("#apdel");
+  if (tab) { apCur = +tab.dataset.m; renderApgar(); return; }
+  if (add) { apAct++; apCur = AP_MINS[apAct - 1]; renderApgar(); return; }
+  if (del) { APK.forEach(k => $(`b_a${apCur}_${k}`).value = ""); apAct--; apCur = AP_MINS[apAct - 1]; updateApgar(); return; }
+  if (pick) { const el = $(`b_a${apCur}_${pick.dataset.k}`); el.value = el.value === pick.dataset.v ? "" : pick.dataset.v; updateApgar(); }
+});
+const isBirth = () => !!document.querySelector('input[name="ev"][value="คลอด"]:checked');
+function updateBirth() {   // เลือกเหตุการณ์ "คลอด" = แสดง GPA ของมารดา (ผู้ป่วยรายที่ 1) และการ์ดทารก
+  const on = isBirth();
+  $("birth").style.display = on ? "" : "none";
+  document.querySelectorAll(".gpa").forEach(e => e.style.display = on ? "" : "none");
+}
+document.addEventListener("change", e => { if (e.target && e.target.name === "ev") updateBirth(); });
 addPatient();
 $("addp").addEventListener("click", () => { const sec = addPatient(); if (sec) { showStat(); sec.scrollIntoView({behavior: "smooth", block: "start"}); } });
 
@@ -433,7 +490,7 @@ function restoreDraft() {
   while (np < Math.min(d.np || 1, 20)) addPatient();
   Object.entries(d.vals).forEach(([id, v]) => { const el = $(id); if (el && v !== undefined) setVal(el, v); });
   Object.entries(d.checks || {}).forEach(([n, arr]) => document.querySelectorAll(`input[name="${n}"]`).forEach(c => c.checked = arr.includes(c.value)));
-  document.querySelectorAll(".sy").forEach(b => markSym(b.dataset.p)); markDq();
+  document.querySelectorAll(".sy").forEach(b => markSym(b.dataset.p)); markDq(); updateBirth(); updateApgar();
   msg("กู้คืนข้อมูลที่กรอกค้างไว้แล้ว", 1);
 }
 $("octest").addEventListener("click", () => selfTest());
@@ -460,6 +517,7 @@ $("mapo").addEventListener("click", () => /^https?:/.test($("map").value) ? open
 const kv = (k, v) => v ? `<tr><td class="k">${k}</td><td>${esc(v)}</td></tr>` : "";
 const fmtCid = v => /^\d{13}$/.test(v) ? v.replace(/^(\d)(\d{4})(\d{5})(\d\d)(\d)$/, "$1-$2-$3-$4-$5") : v;
 const thDate = v => { const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(v || ""); return m ? `${m[3]}/${m[2]}/${+m[1] + 543}` : v; };
+const gpaTxt = d => (d.p1_gpa_g || d.p1_gpa_p || d.p1_gpa_a) ? `G${d.p1_gpa_g || "-"} P${d.p1_gpa_p || "-"} A${d.p1_gpa_a || "-"}` : "";
 function cardHTML(d) {
   const team = [d.staff1, d.staff2, d.staff3].filter(Boolean).join(", ");
   const ev = [d.ev, d.ev_other].filter(Boolean).join(", ");
@@ -473,7 +531,11 @@ function cardHTML(d) {
     const p = k => d["p" + n + "_" + k] || "";
     if (!["name", "cid", "age", "hn", "sym", "sex", "passport", "nat"].some(k => p(k))) continue;
     shown++;
-    h += `<h3>ผู้ป่วยรายที่ ${shown}</h3><table>${kv("ชื่อ-สกุล", p("name"))}${kv("เลขบัตร ปชช.", fmtCid(p("cid")))}${kv("สัญชาติ", p("nat"))}${kv("เลขพาสปอร์ต", p("passport"))}${kv("อายุ", p("age") && p("age") + " ปี")}${kv("HN", p("hn"))}${kv("อาการ", p("sym"))}</table>`;
+    h += `<h3>ผู้ป่วยรายที่ ${shown}</h3><table>${kv("ชื่อ-สกุล", p("name"))}${kv("เลขบัตร ปชช.", fmtCid(p("cid")))}${kv("สัญชาติ", p("nat"))}${kv("เลขพาสปอร์ต", p("passport"))}${kv("อายุ", p("age") && p("age") + " ปี")}${kv("HN", p("hn"))}${n === 1 ? kv("GPA", gpaTxt(d)) : ""}${kv("อาการ", p("sym"))}</table>`;
+  }
+  if (BABY_KEYS.some(k => d[k])) {
+    const ap = m => d["b_apgar" + m] ? kv(`Apgar ${m} นาที`, `${d["b_apgar" + m]}/10  (A${d[`b_a${m}_app`]} P${d[`b_a${m}_pul`]} G${d[`b_a${m}_gri`]} A${d[`b_a${m}_act`]} R${d[`b_a${m}_res`]})`) : "";
+    h += `<h3>ทารกที่คลอด</h3><table>${kv("P", d.b_p)}${kv("RR", d.b_rr)}${kv("O2sat", d.b_o2 && d.b_o2 + "%")}${AP_MINS.map(ap).join("")}</table>`;
   }
   h += `<h3>ประเภทเหตุ</h3><table>${kv("เหตุการณ์", ev)}${kv("ทะเบียนรถผู้ประสบเหตุ", d.plate)}</table></div><div class="ft">มีชื่อ เลขบัตร/พาสปอร์ต และ HN ผู้ป่วย · เก็บเป็นความลับ · สร้างเมื่อ ${new Date().toLocaleString("th-TH", {dateStyle: "short", timeStyle: "short"})}</div>`;
   return h;
@@ -507,7 +569,7 @@ $("again").addEventListener("click", () => {
   [...$("pts").children].slice(1).forEach(el => el.remove()); np = 1; $("addp").textContent = "＋ เพิ่มผู้ป่วยรายที่ 2";
   document.querySelectorAll("input[id],select[id],textarea[id]").forEach(e => { if (!KEEP.includes(e.id)) e.value = ""; });
   document.querySelectorAll('input[name="ev"],input[name="dest"]').forEach(c => c.checked = false);
-  $("m_depart").value = prev; markSym(1); markDq();
+  $("m_depart").value = prev; markSym(1); markDq(); updateBirth(); apAct = 2; apCur = 1; updateApgar();
   $("ov").style.display = "none"; document.body.style.overflow = "";
   $("save").disabled = false; window.scrollTo(0, 0);
   msg(prev ? `พร้อมบันทึกเคสซ้อน · ไมล์ออกต่อจากเคสก่อน (${prev})` : "พร้อมบันทึกเคสซ้อน", 1);
@@ -852,6 +914,12 @@ function validate(d) {
     if (p("temp") && !(+p("temp") >= 30 && +p("temp") <= 43)) w(`${who}: Temp ${p("temp")} ผิดปกติหรือไม่ (ปกติบันทึกเป็น °C เช่น 37.5)`, `p${n}_temp`);
     if (!p("hn")) N.push(`${who}: HN ยังว่าง (เติมทีหลังได้)`);
   }
+  if ((d.ev || "").split(", ").includes("คลอด")) {
+    if (!BABY_KEYS.some(k => d[k])) w("เคสคลอด: ยังไม่ได้กรอกข้อมูลทารก", "b_p");
+    [["b_p", "P ทารก", 40, 220], ["b_rr", "RR ทารก", 10, 100], ["b_o2", "O2sat ทารก", 0, 100]].forEach(([k, l, lo, hi]) => { if (d[k] && !(+d[k] >= lo && +d[k] <= hi)) w(`${l} ${d[k]} ผิดปกติหรือไม่`, k); });
+    AP_MINS.forEach(m => { const ks = APK.map(k => `b_a${m}_${k}`), n = ks.filter(k => d[k] !== undefined && d[k] !== "").length; if (n > 0 && n < 5) w(`Apgar นาทีที่ ${m}: กรอกไม่ครบ 5 ข้อ (กรอกแล้ว ${n} ข้อ)`, "apgar"); });
+    if (!d.p1_gpa_g && !d.p1_gpa_p && !d.p1_gpa_a) N.push("เคสคลอด: ยังไม่ได้กรอก GPA ของมารดา");
+  }
   if (!any) w("ยังไม่มีข้อมูลผู้ป่วย", "p1_name");
   return {W, N};
 }
@@ -885,6 +953,8 @@ function collect() {
   document.querySelectorAll("input[id],select[id],textarea[id]").forEach(e => data[e.id] = e.value);
   ["mode", "dest"].forEach(n => { const c = document.querySelector(`input[name="${n}"]:checked`); data[n] = c ? c.value : ""; });
   data.ev = [...document.querySelectorAll('input[name="ev"]:checked')].map(c => c.value).join(", ");
+  data.b_apgar_more = AP_MINS.filter(m => m >= 10).map(m => { const ks = APK.map(k => data[`b_a${m}_${k}`]), n = ks.filter(x => x !== "").length; return n ? `${m} นาที: ${n === 5 ? data["b_apgar" + m] : "ไม่ครบ " + n + "/5"} (A${ks[0]} P${ks[1]} G${ks[2]} A${ks[3]} R${ks[4]})` : ""; }).filter(Boolean).join("; ");
+  if (!data.ev.split(", ").includes("คลอด")) BIRTH_CLEAR.forEach(k => data[k] = "");   // ไม่ใช่เคสคลอด: ไม่ส่งค่าที่ซ่อนอยู่
   return data;
 }
 $("save").addEventListener("click", () => {
@@ -918,7 +988,7 @@ async function doSave(data) {
 }
 
 $("date").value = new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
-fillStaff(); restoreDraft(); showStat();
+fillStaff(); restoreDraft(); showStat(); updateBirth(); updateApgar();
 (function () {   // เช็กค่าที่ต้องแก้ในไฟล์ ถ้ายังเป็นค่าตัวอย่างหรือรูปแบบผิดจะแจ้งทันที
   const bad = [];
   if (!/^\d{6,}-[A-Za-z0-9]{6,}$/.test(LIFF_ID)) bad.push("LIFF_ID");
