@@ -50,7 +50,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 #save{position:fixed;left:12px;right:12px;bottom:12px;background:linear-gradient(135deg,#e5173f,#b00c3a);border:0;color:#fff;font:600 17px Prompt,sans-serif;min-height:54px;box-shadow:0 4px 12px rgba(229,23,63,.4)}
 #save:disabled{opacity:.5}
 #msg{position:fixed;left:16px;right:16px;bottom:78px;padding:10px 14px;border-radius:12px;background:var(--ink);color:var(--bg);font-size:14px;display:none;z-index:5}
-#ov{position:fixed;inset:0;z-index:20;background:rgba(10,18,30,.92);overflow:auto;display:none;padding:14px 12px 24px;text-align:center}
+#ov{position:fixed;inset:0;z-index:26;background:rgba(10,18,30,.92);overflow:auto;display:none;padding:14px 12px 24px;text-align:center}
 #ov .tip{color:#fff;font-size:14px;margin:0 0 10px}
 #ov img{width:100%;max-width:520px;border-radius:10px;display:none;margin:0 auto}
 #ov .bar{display:flex;gap:8px;position:sticky;bottom:0;z-index:2;margin:12px -12px -24px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#0a121e;border-top:1px solid #2a3a50}
@@ -97,6 +97,45 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 .apb b{font-size:20px}.apb small{font-size:11px;color:var(--mute)}
 .apb.on{background:var(--c);border-color:var(--c);color:#fff}.apb.on small{color:#fff}
 #apsum{margin:12px 0 0;padding:8px 10px;border-radius:10px;background:var(--in);font-size:14px;font-weight:600}
+#sm{position:fixed;inset:0;z-index:24;background:var(--bg);overflow:auto;display:none;padding:12px 12px 40px}
+#sm .smbox{max-width:560px;margin:0 auto}
+#sm .smhd{display:flex;justify-content:space-between;align-items:center;margin:2px 0 10px}
+#sm .smhd b{font:700 20px Prompt,sans-serif}
+#sm .smchips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+#sm .smchips button{min-height:38px;padding:4px 12px;border-radius:999px;font-size:14px;background:transparent}
+#sm .smchips button.on{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}
+#sm .smtiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+#sm .smt{background:var(--card);border-radius:14px;border-top:5px solid var(--gc);padding:10px 12px 12px;box-shadow:0 2px 6px rgba(20,36,59,.12)}
+#sm .smt .n{font:700 34px/1.1 Prompt,sans-serif;color:var(--gc)}
+#sm .smt .l{font:600 16px Prompt,sans-serif;margin:2px 0 4px}
+#sm .smt .s{font-size:12.5px;color:var(--mute);line-height:1.5}
+#sm [hidden]{display:none!important}
+#rc{position:fixed;inset:0;z-index:24;background:var(--bg);overflow:auto;display:none;padding:12px 12px 40px}
+#rc .rcbox{max-width:560px;margin:0 auto}
+#rc .rch{display:flex;justify-content:space-between;align-items:center;margin:2px 0 4px}
+#rc .rch b{font:700 20px Prompt,sans-serif}
+#rc .rci{width:100%;text-align:left;display:block;background:var(--card);border:0;border-left:5px solid var(--gc);border-radius:12px;padding:9px 12px;margin:0 0 8px;box-shadow:0 2px 6px rgba(20,36,59,.12);min-height:0;font-size:14px}
+#rc .rci small{color:var(--mute);font-size:12.5px;line-height:1.5}
+#rc .src{float:right;font-size:11.5px;border-radius:999px;padding:1px 8px;background:var(--in);color:var(--mute)}
+#rc .note{padding:8px 12px;border-radius:10px;background:var(--in);font-size:13px;margin:6px 0 10px;white-space:pre-line}
+#sm .smd{background:var(--card);border-radius:14px;padding:10px 12px;margin:0 0 10px;box-shadow:0 2px 6px rgba(20,36,59,.12)}
+#sm .smd .dh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+#sm .smd .dh b{font:600 16px Prompt,sans-serif}
+#sm .smd .dh span{color:var(--mute);font-size:13px}
+#sm table{width:100%;border-collapse:collapse;text-align:center;font-size:15px}
+#sm th{font-size:12px;font-weight:500;color:var(--mute);padding:3px 0}
+#sm td{padding:9px 0;border-top:1px solid var(--line)}
+#sm td:first-child,#sm th:first-child{text-align:left}
+#sm td small{color:var(--mute);font-size:11px}
+#sm tr[data-s]{cursor:pointer}
+#sm tr.on td{background:var(--in)}
+#sm tr.z td{color:var(--mute)}
+#sm .smx2{background:var(--in);border-radius:0 0 10px 10px;padding:2px 10px 6px;margin-top:-1px}
+#sm .smtot{padding:8px 12px;border-radius:10px;background:var(--in);font-size:14px;margin-bottom:10px}
+#sm details{background:var(--card);border-radius:12px;margin:0 0 8px;padding:2px 12px 8px;border-left:5px solid var(--gc)}
+#sm details summary{color:var(--ink);font-size:16px}
+#sm .smc{padding:7px 0;border-top:1px solid var(--line);font-size:13.5px}
+#sm .smc small{color:var(--mute)}
 .dq{min-height:34px;padding:4px 14px;border-radius:999px;font-size:13px;background:transparent}
 .dq.on{background:var(--c);border-color:var(--c);color:#fff;font-weight:600}
 #cam{position:fixed;inset:0;z-index:40;background:#000;display:none}
@@ -108,7 +147,8 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 </style>
 </head>
 <body>
-<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.31 (ทดลองถ่ายบัตร)</p><p id="hdst" style="margin:6px 0 0;font-size:13px;cursor:pointer;opacity:.95">Sheet: กำลังตรวจ... (แตะเพื่อดูรายละเอียด)</p></header>
+<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.34 (ทดลองถ่ายบัตร)</p><p style="margin:8px 0 0"><button type="button" id="smopen" style="min-height:38px;padding:4px 14px;border-radius:999px;font-size:14px;font-weight:600;color:#a80b38;background:#fff;border-color:#fff">📊 สรุปเคส</button> <button type="button" id="rcopen" style="min-height:38px;padding:4px 14px;border-radius:999px;font-size:14px;font-weight:600;color:#a80b38;background:#fff;border-color:#fff">🖼 รูปสรุปเคสล่าสุด</button></p>
+<p id="hdst" style="margin:6px 0 0;font-size:13px;cursor:pointer;opacity:.95">Sheet: กำลังตรวจ... (แตะเพื่อดูรายละเอียด)</p></header>
 <div id="msg"></div>
 <div id="cfgwarn" style="display:none;background:#e5173f;color:#fff;padding:10px 14px;font-size:14px"></div>
 
@@ -186,6 +226,21 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 <button type="button" id="octest" style="width:100%;margin:0 0 6px;color:var(--mute);background:transparent">🔧 ทดสอบตัวอ่านบัตร (ไม่ต้องใช้บัตร)</button>
 <pre id="octestout" style="white-space:pre-wrap;font-size:12px;color:var(--mute);margin:0 0 90px"></pre>
 
+<div id="sm"><div class="smbox">
+  <div class="smhd"><b>สรุปเคส 3 วันล่าสุด</b><span><button type="button" id="smre" style="margin-right:6px">🔄</button><button type="button" id="smx">✕ ปิด</button></span></div>
+  <p id="smrange" style="margin:0 0 6px;font-size:13px;color:var(--mute)"></p>
+  <div id="smbody"></div>
+</div></div>
+
+<div id="rc"><div class="rcbox">
+  <div class="rch"><b>รูปสรุปเคสล่าสุด</b><span><button type="button" id="rcre" style="margin-right:6px">🔄</button><button type="button" id="rcx">✕ ปิด</button></span></div>
+  <p style="margin:0 0 6px;font-size:13px;color:var(--mute)">เคสของทั้งทีมใน 12 ชั่วโมงล่าสุด · แตะเคสเพื่อสร้างรูปแล้วเซฟใหม่</p>
+  <div id="rclist"></div>
+  <p id="rcst" class="note"></p>
+  <button type="button" id="rcclear" style="width:100%;font-size:13px;color:var(--mute);background:transparent;min-height:38px">🗑 ลบข้อมูลรูปที่เก็บไว้ในเครื่องนี้</button>
+  <p style="font-size:12px;color:var(--mute)">📱 = ข้อมูลในเครื่องนี้ (ใช้ได้แม้ไม่มีเน็ต) · ☁️ = ดึงจาก Sheet (เปิดได้จากทุกเครื่อง) · รายการไม่แสดงชื่อผู้ป่วย แต่รูปที่สร้างมีชื่อ เลขบัตร และ HN ห้ามส่งต่อ</p>
+</div></div>
+
 <div id="ed"><div class="box">
   <h2 id="edt" style="--c:var(--blue)"></h2>
   <div id="edl"></div>
@@ -215,7 +270,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
   <p class="tip" id="vfy" style="font-size:13px;margin:0 0 8px"></p>
   <div id="card" class="sumcard"></div>
   <img id="img" alt="รูปสรุปเคส">
-  <p class="tip" style="margin-top:12px;font-size:12px;opacity:.8">เคสซ้อน = ล้างข้อมูลเหตุเดิม คงวันที่ ALS/BLS ชื่อเจ้าหน้าที่ และใช้เลขไมล์ล่าสุดเป็นไมล์ออกของเคสใหม่<br>แก้ไขข้อมูล = กลับไปแก้ในฟอร์มเดิม บันทึกซ้ำจะเขียนทับเคสเดิมใน Sheet และได้รูปใหม่</p>
+  <p class="tip" id="ovhelp" style="margin-top:12px;font-size:12px;opacity:.8">เคสซ้อน = ล้างข้อมูลเหตุเดิม คงวันที่ ALS/BLS ชื่อเจ้าหน้าที่ และใช้เลขไมล์ล่าสุดเป็นไมล์ออกของเคสใหม่<br>แก้ไขข้อมูล = กลับไปแก้ในฟอร์มเดิม บันทึกซ้ำจะเขียนทับเคสเดิมใน Sheet และได้รูปใหม่</p>
   <div class="bar"><button type="button" id="again" style="background:var(--blue);border-color:var(--blue);color:#fff">＋ เคสซ้อน</button><button type="button" id="editcase">✏️ แก้ไขข้อมูล</button><button type="button" id="newcase">เสร็จ</button></div>
 </div>
 
@@ -224,7 +279,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 <script>
 /* ============ ✏️ จุดที่ต้องแก้ (3 ที่) ============ */
 const LIFF_ID = "2012018268-3LN2vNKu";                              // 1) LIFF ID จาก LINE Developers
-const GAS_URL = "https://script.google.com/macros/s/AKfycbwkFfyYSXxQRHeB-taK2O6B7ue-6_Boq_q5sfo_bIyN6h2KmhM9DAiTYbz0jFQTTz4X/exec";     // 2) Web app URL จาก Apps Script
+const GAS_URL = "https://script.google.com/macros/s/AKfycbz8FYq5aWjEST1emBJSkGFPs9-9bPNgfctj60ljFKhK0ZHRlWoWW2KEjOzZIJqpEdzI/exec";     // 2) Web app URL จาก Apps Script
 const UNIT    = "EMS CHA-AM";                                       // 3) ชื่อหน่วย
 /* ================================================= */
 
@@ -552,7 +607,11 @@ function cardHTML(d) {
   h += `<h3>ประเภทเหตุ</h3><table>${kv("เหตุการณ์", ev)}${kv("ทะเบียนรถผู้ประสบเหตุ", d.plate)}</table></div><div class="ft">มีชื่อ เลขบัตร/พาสปอร์ต และ HN ผู้ป่วย · เก็บเป็นความลับ · สร้างเมื่อ ${new Date().toLocaleString("th-TH", {dateStyle: "short", timeStyle: "short"})}</div>`;
   return h;
 }
-async function showSummary(d) {
+let ovMode = "save", recData = null;
+async function showSummary(d, rec) {   // rec = {label} เมื่อเปิดจากหน้ารูปสรุปเคสล่าสุด
+  ovMode = rec ? "recover" : "save"; recData = rec ? d : null;
+  $("again").hidden = !!rec; $("ovhelp").hidden = !!rec; $("newcase").textContent = rec ? "ปิด" : "เสร็จ";
+  if (rec) { $("vfy").textContent = rec.label; $("vfy").style.color = "#cfe0ff"; }
   const ov = $("ov"), card = $("card"), img = $("img");
   card.innerHTML = cardHTML(d); card.style.display = "block"; img.style.display = "none";
   $("tip").textContent = "กำลังสร้างรูปสรุป...";
@@ -562,13 +621,20 @@ async function showSummary(d) {
     const cv = await html2canvas(card, {scale: 3, backgroundColor: "#ffffff", useCORS: true, scrollX: 0, scrollY: 0});
     img.src = cv.toDataURL("image/png");
     img.style.display = "block"; card.style.display = "none";
-    $("tip").textContent = "บันทึกเคสแล้ว · กดค้างที่รูป แล้วเลือก “บันทึกรูปภาพ”";
+    $("tip").textContent = (rec ? "" : "บันทึกเคสแล้ว · ") + "กดค้างที่รูป แล้วเลือก “บันทึกรูปภาพ”";
   } catch (e) {
-    $("tip").textContent = "สร้างรูปไม่สำเร็จ · ใช้การแคปหน้าจอแทนได้ (ข้อมูลบันทึกลง Sheet แล้ว)";
+    $("tip").textContent = "สร้างรูปไม่สำเร็จ · ใช้การแคปหน้าจอแทนได้" + (rec ? "" : " (ข้อมูลบันทึกลง Sheet แล้ว)");
   }
 }
-$("newcase").addEventListener("click", () => location.reload());
+$("newcase").addEventListener("click", () => { if (ovMode === "recover") { $("ov").style.display = "none"; document.body.style.overflow = $("rc").style.display === "block" ? "hidden" : ""; return; } location.reload(); });
 $("editcase").addEventListener("click", () => {
+  if (ovMode === "recover") {   // โหลดเคสเดิมกลับเข้าฟอร์ม แก้แล้วบันทึกซ้ำ = เขียนทับเคสเดิม
+    const dr = LS.get(DK, null);
+    if (dr && dr.vals && Object.entries(dr.vals).some(([k, v]) => k !== "date" && v) && !confirm("ข้อมูลที่กรอกค้างอยู่ในฟอร์มจะถูกแทนที่ด้วยเคสนี้ ดำเนินการต่อหรือไม่?")) return;
+    $("rc").style.display = "none"; loadIntoForm(recData); curOp = recData.op_no || ""; editing = true; $("save").textContent = "บันทึกการแก้ไข"; $("save").disabled = false;
+    $("ov").style.display = "none"; document.body.style.overflow = ""; window.scrollTo(0, 0);
+    msg("โหลดเคสเดิมเข้าฟอร์มแล้ว · แก้แล้วกดบันทึก จะเขียนทับเคสเดิม", 1); saveDraft(); return;
+  }
   editing = true; $("save").textContent = "บันทึกการแก้ไข"; $("save").disabled = false;
   $("ov").style.display = "none"; document.body.style.overflow = ""; window.scrollTo(0, 0);
   msg("แก้ไขข้อมูลแล้วกดบันทึกอีกครั้ง · จะเขียนทับเคสเดิม", 1);
@@ -960,14 +1026,133 @@ $("rvback").addEventListener("click", closeReview);
 $("rvwarn").addEventListener("click", e => { const it = e.target.closest(".wi"); if (it) goField(rvWarns[+it.dataset.i].f); });
 $("rvgo").addEventListener("click", () => { closeReview(); doSave(rvData); });
 
+/* ===== หน้าสรุปเคส 3 วันล่าสุด แยกเวร (นับจากเวลารับแจ้งจากศูนย์) ===== */
+const SM_GROUPS = [
+  {k: "trauma", label: "Trauma", c: "#e5173f", sub: ["อุบัติเหตุจราจร", "อุบัติเหตุทั่วไป"]},
+  {k: "med", label: "Med", c: "#1f6feb", sub: ["ป่วยฉุกเฉิน", "คลอด"]},
+  {k: "v14", label: "ว.14", c: "#e8a200", sub: []}   // ว.14 รวมเคสอื่น ๆ ด้วย: ไม่มีเหตุ, หน่วยงานอื่นนำส่ง, ไม่ระบุประเภท
+];
+const SM_SHIFTS = [["m", "เช้า", "08-16"], ["a", "บ่าย", "16-24"], ["n", "ดึก", "00-08"]];
+const TH_MON = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+let smCases = [], smDays = [], smOpen = "";
+const bkkNow = () => new Date(Date.now() + (7 * 60 + new Date().getTimezoneOffset()) * 6e4);
+const isoOf = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const thDay = iso => { const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(iso || ""); return m ? `${+m[3]} ${TH_MON[+m[2] - 1]} ${+m[1] + 543}` : iso; };
+const evTokens = ev => String(ev || "").split(/\s*,\s*/).filter(Boolean);
+function smClassify(ev) {   // เคสที่เลือกหลายประเภทอยู่ได้หลายกลุ่ม · ไม่เข้า Trauma/Med = ว.14
+  const tk = evTokens(ev), g = SM_GROUPS.slice(0, 2).filter(G => tk.some(x => G.sub.includes(x))).map(G => G.k);
+  if (tk.includes("กรณี ว.14") || !g.length) g.push("v14");
+  return g;
+}
+function smShift(tc) {   // เวรจากเวลารับแจ้ง: ดึก 00:00-07:59 · เช้า 08:00-15:59 · บ่าย 16:00-23:59
+  const m = /^(\d{1,2}):(\d\d)/.exec(tc || ""); if (!m) return "x";
+  const h = +m[1]; return h < 8 ? "n" : h < 16 ? "m" : "a";
+}
+function smErr(t) { $("smrange").textContent = ""; $("smbody").innerHTML = `<div class="smtot" style="color:var(--red);white-space:pre-line">${esc(t)}</div>`; }
+async function smLoad() {
+  const t = bkkNow(); smDays = [0, -1, -2].map(n => { const x = new Date(t); x.setDate(x.getDate() + n); return isoOf(x); });
+  const from = smDays[2], to = smDays[0];
+  $("smrange").textContent = `นับจากเวลารับแจ้งจากศูนย์ · ${thDay(from)} – ${thDay(to)} · กำลังโหลด...`; $("smbody").innerHTML = "";
+  let tok = ""; try { tok = liff.getIDToken() || ""; } catch (e) {}
+  if (!tok) return smErr("ต้องเปิดจากลิงก์ LIFF ในแอป LINE (ยังไม่ได้เข้าสู่ระบบ)");
+  try {
+    const r = await fetchJsonp(`action=cases&from=${from}&to=${to}&t=${encodeURIComponent(tok)}`, 25000);
+    if (!r.ok) return smErr(r.error === "unauthorized" ? "เข้าสู่ระบบ LINE หมดอายุ หรือ CHANNEL_ID ใน Code.gs ไม่ตรง\nปิดแล้วเปิดแอปใหม่ แล้วลองอีกครั้ง" : "เซิร์ฟเวอร์แจ้ง: " + r.error);
+    smCases = r.cases || []; smOpen = "";
+    $("smrange").textContent = `นับจากเวลารับแจ้งจากศูนย์ · ${thDay(from)} – ${thDay(to)}` + (r.truncated ? ` · แสดง ${smCases.length} จาก ${r.total} เคส` : "");
+    smRender();
+  } catch (e) { smErr("โหลดไม่สำเร็จ\nCode.gs ต้องเป็นรุ่น 1.19 ขึ้นไปและ Deploy เวอร์ชันใหม่แล้ว (ดูที่การ์ดสถานะ Sheet ท้ายหน้า) หรืออินเทอร์เน็ตมีปัญหา"); }
+}
+function smRender() {
+  const inG = (c, k) => smClassify(c.ev).includes(k), cnt = (a, f) => a.filter(f).length;
+  const tiles = SM_GROUPS.map(G => {
+    const a = smCases.filter(c => inG(c, G.k)); let sub;
+    if (G.k === "v14") { const p = [["ว.14", c => evTokens(c.ev).includes("กรณี ว.14")], ["ไม่มีเหตุ", c => evTokens(c.ev).includes("ไม่มีเหตุ")], ["หน่วยงานอื่นนำส่ง", c => evTokens(c.ev).includes("หน่วยงานอื่นนำส่ง")]].map(([l, f]) => [l, cnt(a, f)]).filter(x => x[1]); const rest = cnt(a, c => !evTokens(c.ev).some(x => ["กรณี ว.14", "ไม่มีเหตุ", "หน่วยงานอื่นนำส่ง"].includes(x))); if (rest) p.push(["ไม่ระบุ", rest]); sub = p.map(x => x[0] + " " + x[1]).join(" · "); }
+    else sub = G.sub.map(x => `${x.replace("อุบัติเหตุ", "")} ${cnt(a, c => evTokens(c.ev).includes(x))}`).join(" · ");
+    return `<div class="smt" style="--gc:${G.c}"><div class="n">${a.length}</div><div class="l">${G.label}</div><div class="s">${sub}</div></div>`;
+  }).join("");
+  const multi = cnt(smCases, c => smClassify(c.ev).length > 1);
+  const caseRow = c => `<div class="smc"><b>${esc(c.tc || "--:--")}</b> · ${esc(c.mode || "-")} · ${esc(evTokens(c.ev).join(", ") || "ไม่ระบุประเภท")}<br><small>${esc(c.loc || "ไม่ระบุสถานที่")}${c.dest ? " → " + esc(c.dest) : ""}${c.np > 1 ? " · ผู้ป่วย " + c.np + " ราย" : ""}</small></div>`;
+  const days = smDays.map((d, i) => {
+    const dc = smCases.filter(c => c.d === d), noT = dc.filter(c => smShift(c.tc) === "x");
+    const row = (k, name, hr, a) => { const key = d + "|" + k, on = smOpen === key; return `<tr data-s="${key}" class="${on ? "on" : ""}${a.length ? "" : " z"}"><td>${name}${hr ? ` <small>${hr}</small>` : ""}${a.length ? (on ? " ▾" : " ▸") : ""}</td>${SM_GROUPS.map(G => `<td>${cnt(a, c => inG(c, G.k))}</td>`).join("")}<td><b>${a.length}</b></td></tr>` + (on && a.length ? `<tr><td colspan="5" style="padding:0;border-top:0"><div class="smx2">${a.slice().sort((x, y) => (x.tc || "") < (y.tc || "") ? -1 : 1).map(caseRow).join("")}</div></td></tr>` : ""); };
+    return `<div class="smd"><div class="dh"><b>${i === 0 ? "วันนี้ · " : i === 1 ? "เมื่อวาน · " : ""}${thDay(d)}</b><span>รวม ${dc.length} เคส</span></div><table><tr><th>เวร</th>${SM_GROUPS.map(G => `<th style="color:${G.c}">${G.label}</th>`).join("")}<th>รวม</th></tr>${SM_SHIFTS.map(([k, n, h]) => row(k, n, h, dc.filter(c => smShift(c.tc) === k))).join("")}${noT.length ? row("x", "ไม่ระบุเวลารับแจ้ง", "", noT) : ""}</table></div>`;
+  }).join("");
+  $("smbody").innerHTML = `<div class="smtiles">${tiles}</div><div class="smtot"><b>รวม 3 วัน ${smCases.length} เคส</b>${multi ? `<br><small>มี ${multi} เคสที่เลือกหลายประเภท จึงนับอยู่ในหลายกลุ่ม (ช่อง “รวม” นับเคสไม่ซ้ำ)</small>` : ""}</div>${days}<p style="font-size:12px;color:var(--mute)">แตะแถวเวรเพื่อดูรายการเคส · เวรดึก 00:00-08:00 นับเป็นของวันที่ตามปฏิทิน · ว.14 รวมเคสไม่มีเหตุ หน่วยงานอื่นนำส่ง และเคสที่ไม่ได้เลือกประเภท · ไม่แสดงชื่อ เลขบัตร หรือ HN ผู้ป่วย</p>`;
+}
+$("smopen").addEventListener("click", () => { $("sm").style.display = "block"; document.body.style.overflow = "hidden"; smLoad(); });
+$("smx").addEventListener("click", () => { $("sm").style.display = "none"; document.body.style.overflow = ""; });
+$("smre").addEventListener("click", smLoad);
+$("smbody").addEventListener("click", e => { const r = e.target.closest("tr[data-s]"); if (!r) return; smOpen = smOpen === r.dataset.s ? "" : r.dataset.s; const y = $("sm").scrollTop; smRender(); $("sm").scrollTop = y; });
+
+/* ===== รูปสรุปเคสล่าสุด: ใช้ข้อมูลในเครื่องก่อน + เคสทั้งทีมจาก Sheet (12 ชม.) ===== */
+const RK = "ems_recent", REC_H = 12;
+const recentLocal = () => (LS.get(RK, []) || []).filter(x => x && x.data && x.op && Date.now() - x.t < REC_H * 36e5);
+function rememberCase(data) {   // เก็บข้อมูลเคสที่บันทึกสำเร็จไว้ในเครื่อง 12 ชม. เพื่อสร้างรูปใหม่ได้ (ลบเองเมื่อหมดเวลา)
+  const a = recentLocal().filter(x => x.op !== data.op_no); a.unshift({t: Date.now(), op: data.op_no, data}); LS.set(RK, a.slice(0, 10));
+}
+const bkkStamp = t => { const x = new Date(t + (7 * 60 + new Date().getTimezoneOffset()) * 6e4); return isoOf(x) + " " + String(x.getHours()).padStart(2, "0") + ":" + String(x.getMinutes()).padStart(2, "0"); };
+let rcItems = [];
+function rcDay(stamp) { const d = stamp.slice(0, 10), t = isoOf(bkkNow()), y = new Date(bkkNow()); y.setDate(y.getDate() - 1); return d === t ? "วันนี้" : d === isoOf(y) ? "เมื่อวาน" : thDay(d); }
+function rcRender() {
+  const col = ev => ({trauma: "#e5173f", med: "#1f6feb", v14: "#e8a200"})[smClassify(ev)[0]];
+  $("rclist").innerHTML = rcItems.length ? rcItems.map((c, i) => `<button type="button" class="rci" data-i="${i}" style="--gc:${col(c.ev)}"><span class="src">${c.local ? "📱 เครื่องนี้" : "☁️ Sheet"}</span><b>${rcDay(c.at)} ${esc(c.tc || c.at.slice(11, 16))}</b>${c.tc ? "" : " <small>(เวลาบันทึก)</small>"} · ${esc(c.mode || "-")} · ${esc(evTokens(c.ev).join(", ") || "ไม่ระบุประเภท")}<br><small>${esc(c.loc || "ไม่ระบุสถานที่")}${c.dest ? " → " + esc(c.dest) : ""}${c.np > 1 ? " · ผู้ป่วย " + c.np + " ราย" : ""}${c.team ? "<br>เจ้าหน้าที่: " + esc(c.team) : ""}</small></button>`).join("") : "";
+}
+function rcFromLocal() {
+  return recentLocal().map(x => { const d = x.data; let np = 0; for (let n = 1; d["p" + n + "_name"] !== undefined; n++) if (["name", "cid", "age", "hn", "sym", "sex", "passport", "nat"].some(k => d["p" + n + "_" + k])) np++;
+    return {op: x.op, at: bkkStamp(x.t), tc: d.t_call || "", mode: d.mode, ev: [d.ev, d.ev_other].filter(Boolean).join(", "), loc: (d.loc || "").slice(0, 60), dest: d.dest, team: [d.staff1, d.staff2, d.staff3].filter(Boolean).join(", "), np: np || 1, local: true, data: d}; });
+}
+async function rcLoad() {
+  rcItems = rcFromLocal(); rcRender();
+  const st = $("rcst"); st.style.color = "var(--mute)"; st.textContent = "กำลังโหลดเคสของทั้งทีมจาก Sheet...";
+  let tok = ""; try { tok = liff.getIDToken() || ""; } catch (e) {}
+  if (!tok) { st.textContent = "ดึงเคสของทั้งทีมไม่ได้: ต้องเปิดจากลิงก์ LIFF ในแอป LINE" + (rcItems.length ? "\nเคสจากเครื่องนี้ด้านบนยังใช้ได้" : ""); return; }
+  try {
+    const r = await fetchJsonp(`action=recent&t=${encodeURIComponent(tok)}`, 20000);
+    if (!r.ok) { st.style.color = "var(--red)"; st.textContent = r.error === "unauthorized" ? "เข้าสู่ระบบ LINE หมดอายุ ปิดแล้วเปิดแอปใหม่" : "เซิร์ฟเวอร์แจ้ง: " + r.error; return; }
+    const have = new Set(rcItems.map(c => c.op));
+    rcItems = rcItems.concat((r.cases || []).filter(c => !have.has(c.op)).map(c => Object.assign(c, {at: c.at.slice(0, 16)}))).sort((a, b) => a.at < b.at ? 1 : -1);
+    rcRender(); st.textContent = rcItems.length ? `ทั้งหมด ${rcItems.length} เคสใน 12 ชั่วโมงล่าสุด` : "ไม่มีเคสที่บันทึกใน 12 ชั่วโมงล่าสุด";
+  } catch (e) { st.style.color = "var(--red)"; st.textContent = "โหลดเคสจาก Sheet ไม่สำเร็จ (เน็ต หรือ Code.gs ยังไม่ใช่รุ่น 1.20)" + (rcItems.length ? "\nเคสจากเครื่องนี้ด้านบนยังใช้ได้" : ""); }
+}
+async function rcOpen(c) {
+  const label = `เคส ${rcDay(c.at)} ${c.tc || c.at.slice(11, 16)} · ${c.local ? "📱 จากข้อมูลในเครื่องนี้" : "☁️ จากข้อมูลใน Sheet (เป็นข้อมูลล่าสุดใน Sheet)"}`;
+  if (c.local) return showSummary(c.data, {label});
+  const st = $("rcst"); st.style.color = "var(--mute)"; st.textContent = "กำลังดึงข้อมูลเคสจาก Sheet...";
+  let tok = ""; try { tok = liff.getIDToken() || ""; } catch (e) {}
+  try {
+    const r = await fetchJsonp(`action=case&op=${encodeURIComponent(c.op)}&t=${encodeURIComponent(tok)}`, 20000);
+    if (!r.ok) { st.style.color = "var(--red)"; st.textContent = r.error === "unauthorized" ? "เข้าสู่ระบบ LINE หมดอายุ ปิดแล้วเปิดแอปใหม่" : r.error === "expired" ? "เคสนี้เกิน 12 ชั่วโมงแล้ว" : r.error === "not found" ? "ไม่พบเคสนี้ใน Sheet (อาจถูกลบหรือย้าย)" : "เซิร์ฟเวอร์แจ้ง: " + r.error; return; }
+    st.textContent = ""; showSummary(r.data, {label});
+  } catch (e) { st.style.color = "var(--red)"; st.textContent = "ดึงข้อมูลเคสไม่สำเร็จ ลองใหม่อีกครั้ง"; }
+}
+function loadIntoForm(d) {   // ใส่ข้อมูลเคสกลับเข้าฟอร์มทั้งหมด (ใช้กับปุ่มแก้ไขข้อมูลจากหน้ารูปสรุปเคสล่าสุด)
+  [...$("pts").children].slice(1).forEach(el => el.remove()); np = 1; $("addp").textContent = "＋ เพิ่มผู้ป่วยรายที่ 2";
+  document.querySelectorAll("input[id],select[id],textarea[id]").forEach(e => { if (e.type !== "file" && !e.closest("#ed")) e.value = ""; });
+  document.querySelectorAll('input[name="mode"],input[name="ev"],input[name="dest"]').forEach(c => c.checked = false);
+  let n = 1; while (n < 20 && d["p" + (n + 1) + "_name"] !== undefined) n++;
+  while (np < n) addPatient();
+  Object.keys(d).forEach(k => { const el = $(k); if (el && /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName) && el.type !== "file" && d[k] != null && d[k] !== "") setVal(el, String(d[k])); });
+  const tick = (name, vals) => document.querySelectorAll(`input[name="${name}"]`).forEach(c => c.checked = vals.includes(c.value));
+  tick("mode", [d.mode]); tick("dest", [d.dest]); tick("ev", evTokens(d.ev));
+  apAct = 2; apCur = 1;
+  document.querySelectorAll(".sy").forEach(b => markSym(b.dataset.p)); markDq(); updateBirth(); updateApgar();
+}
+$("rcopen").addEventListener("click", () => { $("rc").style.display = "block"; document.body.style.overflow = "hidden"; rcLoad(); });
+$("rcx").addEventListener("click", () => { $("rc").style.display = "none"; document.body.style.overflow = ""; });
+$("rcre").addEventListener("click", rcLoad);
+$("rclist").addEventListener("click", e => { const b = e.target.closest(".rci"); if (b) rcOpen(rcItems[+b.dataset.i]); });
+$("rcclear").addEventListener("click", () => { if (confirm("ลบข้อมูลเคสที่เก็บไว้ในเครื่องนี้ (สำหรับสร้างรูปใหม่)?\nข้อมูลใน Sheet ไม่ถูกลบ")) { LS.del(RK); rcLoad(); } });
+LS.set(RK, recentLocal());   // ล้างรายการที่เกิน 12 ชม. ทุกครั้งที่เปิดแอป
+
 /* ===== สถานะการเชื่อมต่อ Sheet ===== */
-const EXPECT_MIN = 17;   // ฟอร์มรุ่นนี้ทำงานคู่กับ Code.gs Prototype 1.17 ขึ้นไป
+const EXPECT_MIN = 20;   // ฟอร์มรุ่นนี้ทำงานคู่กับ Code.gs Prototype 1.20 ขึ้นไป
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-function fetchJsonp(q) {
+function fetchJsonp(q, ms) {
   return new Promise((resolve, reject) => {
     const cb = "__ems" + Date.now() + Math.floor(Math.random() * 1e4), sc = document.createElement("script"); let t;
     const done = (v, err) => { clearTimeout(t); delete window[cb]; sc.remove(); err ? reject(err) : resolve(v); };
-    t = setTimeout(() => done(null, new Error("timeout")), 9000);
+    t = setTimeout(() => done(null, new Error("timeout")), ms || 9000);
     window[cb] = v => done(v); sc.onerror = () => done(null, new Error("load"));
     sc.src = `${GAS_URL}?${q}&callback=${cb}&_=${Date.now()}`; document.head.appendChild(sc);
   });
@@ -1084,7 +1269,7 @@ async function doSave(data) {
   }
   clearTimeout(dT); LS.del(DK); clearPreviews();
   msg(confirmed ? (editing ? "บันทึกการแก้ไขแล้ว ✓" : "บันทึกแล้ว ✓") : "ส่งข้อมูลแล้ว แต่ยืนยันผลไม่ได้ ตรวจใน Sheet อีกครั้ง", confirmed);
-  LS.set("ems_last_op", data.op_no);
+  LS.set("ems_last_op", data.op_no); rememberCase(data);
   showSummary(data); verifySaved(data.op_no);
 }
 
