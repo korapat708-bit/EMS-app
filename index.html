@@ -58,7 +58,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 #save{position:fixed;left:12px;right:12px;bottom:12px;background:linear-gradient(135deg,#e5173f,#b00c3a);border:0;color:#fff;font:600 17px Prompt,sans-serif;min-height:54px;box-shadow:0 4px 12px rgba(229,23,63,.4)}
 #save:disabled{opacity:.5}
 #msg{position:fixed;left:16px;right:16px;bottom:78px;padding:10px 14px;border-radius:12px;background:var(--ink);color:var(--bg);font-size:14px;display:none;z-index:5}
-#golin{position:fixed;inset:0;z-index:99;background:var(--bg);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px}#golin h2{font:700 20px Prompt,sans-serif;margin:18px 0 6px}#golin p{color:var(--mute);margin:0 0 20px;line-height:1.6}#golin a{display:inline-block;background:#06c755;color:#fff;font:600 17px Prompt,sans-serif;padding:14px 36px;border-radius:999px;text-decoration:none}#golin small{display:block;margin-top:14px;color:var(--mute)}
+#golin{position:fixed;inset:0;z-index:99;background:var(--bg);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px}#golin h2{font:700 20px Prompt,sans-serif;margin:18px 0 6px}#golin p{color:var(--mute);margin:0 0 20px;line-height:1.6}#golin a{display:inline-block;background:#06c755;color:#fff;font:600 17px Prompt,sans-serif;padding:14px 36px;border-radius:999px;text-decoration:none}#golin a.alt{display:block;background:none;color:var(--blue);font:500 14px "Noto Sans Thai",sans-serif;padding:14px 0 0}#golin small{display:block;margin-top:14px;color:var(--mute)}
 #ov{position:fixed;inset:0;z-index:26;background:rgba(10,18,30,.92);overflow:auto;display:none;padding:14px 12px 24px;text-align:center}
 #ov .tip{color:#fff;font-size:14px;margin:0 0 10px}
 #ov img{width:100%;max-width:520px;border-radius:10px;display:none;margin:0 auto}
@@ -159,7 +159,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 </style>
 </head>
 <body>
-<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.38 (ทดลองถ่ายบัตร)</p><p style="margin:8px 0 0"><button type="button" id="smopen" style="min-height:38px;padding:4px 14px;border-radius:999px;font-size:14px;font-weight:600;color:#a80b38;background:#fff;border-color:#fff">📊 สรุปเคส</button> <button type="button" id="rcopen" style="min-height:38px;padding:4px 14px;border-radius:999px;font-size:14px;font-weight:600;color:#a80b38;background:#fff;border-color:#fff">🖼 รูปสรุปเคสล่าสุด</button></p>
+<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.39 (ทดลองถ่ายบัตร)</p><p style="margin:8px 0 0"><button type="button" id="smopen" style="min-height:38px;padding:4px 14px;border-radius:999px;font-size:14px;font-weight:600;color:#a80b38;background:#fff;border-color:#fff">📊 สรุปเคส</button> <button type="button" id="rcopen" style="min-height:38px;padding:4px 14px;border-radius:999px;font-size:14px;font-weight:600;color:#a80b38;background:#fff;border-color:#fff">🖼 รูปสรุปเคสล่าสุด</button></p>
 <p id="hdst" style="margin:6px 0 0;font-size:13px;cursor:pointer;opacity:.95">Sheet: กำลังตรวจ... (แตะเพื่อดูรายละเอียด)</p></header>
 <div id="msg"></div>
 <div id="cfgwarn" style="display:none;background:#e5173f;color:#fff;padding:10px 14px;font-size:14px"></div>
@@ -1332,23 +1332,24 @@ fillStaff(); restoreDraft(); showStat(); updateBirth(); updateApgar(); shCheck()
   if (!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(GAS_URL)) bad.push("GAS_URL");
   if (bad.length) { const w = $("cfgwarn"); w.style.display = "block"; w.textContent = "⚠️ ไฟล์ index.html ยังตั้งค่า " + bad.join(" และ ") + " ไม่ถูกต้อง กรุณาแก้ที่ GitHub ก่อน จึงจะบันทึกเคสได้"; }
 })();
-/* iPhone/iPad นอก LINE (Safari/Chrome/ไอคอนหน้าจอโฮม): ล็อกอิน LINE บนเว็บของ iOS ไม่จำค่า → เด้งไปเปิดในแอป LINE แทน */
+/* iPhone/iPad นอก LINE (Safari/Chrome/ไอคอนหน้าจอโฮม): ล็อกอิน LINE บนเว็บของ iOS ไม่จำค่า → ให้กดเปิดในแอป LINE
+   ไม่เด้งอัตโนมัติ เพราะถ้า iOS ไม่ยอมเปิดแอป LINE หน้า liff.line.me จะส่งกลับมาหน้านี้ แล้ววนซ้ำจนหน้าจอกระพริบ */
 const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-const UA_LINE = /\bLine\//i.test(navigator.userAgent);
-const toLine = IOS && !UA_LINE && /^\d{6,}-/.test(LIFF_ID);
-if (toLine) {
-  const u = "https://liff.line.me/" + LIFF_ID, g = document.createElement("div");
-  g.id = "golin";
-  g.innerHTML = `<div><img src="icon-192.png" alt="" width="96" height="96" style="border-radius:22px;box-shadow:0 4px 14px #0003"><h2>กำลังเปิดในแอป LINE...</h2><p>บน iPhone แอปนี้ต้องเปิดผ่าน LINE<br>จะได้ไม่ต้องล็อกอินทุกครั้ง</p><a href="${u}">เปิดใน LINE</a><small>ถ้าไม่เด้งไปเอง ให้กดปุ่มด้านบน</small></div>`;
+let goShown = false;
+function showGoLine() {
+  if (goShown) return; goShown = true;
+  const back = /liff\.state|liff\.referrer/.test(location.search) || /liff\.line\.me/.test(document.referrer);
+  const g = document.createElement("div"); g.id = "golin";
+  g.innerHTML = `<div><img src="icon-192.png" alt="" width="96" height="96" style="border-radius:22px;box-shadow:0 4px 14px #0003"><h2>เปิดแอปนี้ในแอป LINE</h2><p>บน iPhone ต้องเปิดผ่าน LINE<br>จะได้ไม่ต้องล็อกอินทุกครั้ง</p><a href="https://liff.line.me/${LIFF_ID}">เปิดใน LINE</a><a class="alt" href="https://line.me/R/app/${LIFF_ID}">ลองอีกลิงก์</a>${back ? "<small>ถ้ากดแล้วกลับมาหน้านี้อีก ให้เปิดจากลิงก์ในแชทหรือเมนูของ LINE แทน</small>" : ""}</div>`;
   document.body.appendChild(g); document.body.style.overflow = "hidden";
-  setTimeout(() => { location.href = u; }, 400);
 }
-if (!toLine) liff.init({liffId: LIFF_ID}).then(async () => {
+liff.init({liffId: LIFF_ID}).then(async () => {
+  if (IOS && !liff.isInClient()) return showGoLine();
   if (!liff.isLoggedIn()) { try { draftNow(); } catch (e) {} return liff.login({redirectUri: location.origin + location.pathname}); }
   liffReady = true;
   if (!getTok()) return;   // นอก LINE และโทเคนหมดอายุ → relogin() ทำงานแล้ว
   syncLists();
-}).catch(() => { msg("เชื่อมต่อ LINE ไม่ได้ / LIFF ID ยังไม่ถูกตั้งค่า"); setSt("ไม่ได้เชื่อมต่อ LINE (เปิดจากลิงก์ LIFF ในแอป LINE / เช็ก LIFF ID) จึงเพิ่ม/ลบรายชื่อไม่ได้", false); });
+}).catch(() => { if (IOS && !/\bLine\//i.test(navigator.userAgent)) return showGoLine(); msg("เชื่อมต่อ LINE ไม่ได้ / LIFF ID ยังไม่ถูกตั้งค่า"); setSt("ไม่ได้เชื่อมต่อ LINE (เปิดจากลิงก์ LIFF ในแอป LINE / เช็ก LIFF ID) จึงเพิ่ม/ลบรายชื่อไม่ได้", false); });
 /* กลับมาเปิดแอปจากไอคอนหลังทิ้งไว้นาน → เช็กโทเคน */
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && liffReady && !inLine()) getTok(); });
 </script>
