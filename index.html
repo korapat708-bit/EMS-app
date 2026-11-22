@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>บันทึกการออกปฏิบัติการ EMS CHA-AM</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="EMS ชะอำ">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#e5173f">
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600;700&family=Noto+Sans+Thai:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -150,7 +158,7 @@ button{font:inherit;border-radius:10px;border:1.5px solid var(--line);background
 </style>
 </head>
 <body>
-<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.35 (ทดลองถ่ายบัตร)</p><p style="margin:8px 0 0"><button type="button" id="smopen" style="min-height:38px;padding:4px 14px;border-radius:999px;font-size:14px;font-weight:600;color:#a80b38;background:#fff;border-color:#fff">📊 สรุปเคส</button> <button type="button" id="rcopen" style="min-height:38px;padding:4px 14px;border-radius:999px;font-size:14px;font-weight:600;color:#a80b38;background:#fff;border-color:#fff">🖼 รูปสรุปเคสล่าสุด</button></p>
+<header><h1>แบบบันทึกการออกปฏิบัติการ</h1><p>ทีม EMS CHA-AM · Prototype 1.36 (ทดลองถ่ายบัตร)</p><p style="margin:8px 0 0"><button type="button" id="smopen" style="min-height:38px;padding:4px 14px;border-radius:999px;font-size:14px;font-weight:600;color:#a80b38;background:#fff;border-color:#fff">📊 สรุปเคส</button> <button type="button" id="rcopen" style="min-height:38px;padding:4px 14px;border-radius:999px;font-size:14px;font-weight:600;color:#a80b38;background:#fff;border-color:#fff">🖼 รูปสรุปเคสล่าสุด</button></p>
 <p id="hdst" style="margin:6px 0 0;font-size:13px;cursor:pointer;opacity:.95">Sheet: กำลังตรวจ... (แตะเพื่อดูรายละเอียด)</p></header>
 <div id="msg"></div>
 <div id="cfgwarn" style="display:none;background:#e5173f;color:#fff;padding:10px 14px;font-size:14px"></div>
@@ -488,21 +496,41 @@ function fetchLists() {   // อ่านแบบ JSONP (ไม่ติดข�
     document.head.appendChild(sc);
   });
 }
+/* โทเคน LINE: เปิดจากไอคอนหน้าจอโฮม (นอก LINE) โทเคนจะหมดอายุเป็นระยะ → เก็บร่างแล้วล็อกอินใหม่อัตโนมัติ */
+let liffReady = false, relogging = false;
+const inLine = () => { try { return liff.isInClient(); } catch (e) { return true; } };
+function getTok() {
+  let t = "";
+  try {
+    t = liff.getIDToken() || "";
+    const d = t && liff.getDecodedIDToken();
+    if (d && d.exp && d.exp * 1000 < Date.now() + 120000) t = "";   // หมดอายุ / เหลือไม่ถึง 2 นาที
+  } catch (e) { t = ""; }
+  if (!t && liffReady && !inLine()) relogin();
+  return t;
+}
+function relogin() {
+  if (relogging) return; relogging = true;
+  try { draftNow(); } catch (e) {}
+  msg("กำลังเข้าสู่ระบบ LINE ใหม่... ข้อมูลที่กรอกเก็บไว้แล้ว", 1);
+  try { if (liff.isLoggedIn()) liff.logout(); } catch (e) {}
+  liff.login({redirectUri: location.href.split("#")[0]});
+}
 async function sendList(body) {
-  await fetch(GAS_URL, {method: "POST", mode: "no-cors", headers: {"Content-Type": "text/plain"}, body: JSON.stringify(Object.assign({idToken: liff.getIDToken()}, body))});
+  await fetch(GAS_URL, {method: "POST", mode: "no-cors", headers: {"Content-Type": "text/plain"}, body: JSON.stringify(Object.assign({idToken: getTok()}, body))});
 }
 let pendingOps = 0, synced = false;
 function setSt(t, ok) { const e = $("syncst"); e.textContent = "สถานะซิงก์รายชื่อ: " + t; e.style.color = ok === true ? "var(--ok)" : ok === false ? "var(--red)" : "var(--mute)"; }
 async function diagnose() {
   setSt("กำลังตรวจสอบ... (อาจรอได้ถึง 10 วินาที)");
   let login = false;
-  try { login = !!(window.liff && liff.isLoggedIn && liff.isLoggedIn() && liff.getIDToken()); } catch (e) {}
+  try { login = !!(window.liff && liff.isLoggedIn && liff.isLoggedIn() && getTok()); } catch (e) {}
   try {
     const d = await fetchLists();
     if (pendingOps === 0) applyLists(d);
     synced = true;
     const n = (d.staff || []).length + (d.staff3 || []).length;
-    setSt(`เซิร์ฟเวอร์ตอบปกติ · อ่านรายชื่อได้ ${n} ชื่อ` + (login ? " · ล็อกอิน LINE แล้ว ✓ เพิ่ม/ลบได้" : " · ⚠️ ยังไม่ได้ล็อกอิน LINE ต้องเปิดจากลิงก์ LIFF ในแอป LINE จึงจะเพิ่ม/ลบได้"), login);
+    setSt(`เซิร์ฟเวอร์ตอบปกติ · อ่านรายชื่อได้ ${n} ชื่อ` + (login ? " · ล็อกอิน LINE แล้ว ✓ เพิ่ม/ลบได้" : " · ⚠️ ยังไม่ได้ล็อกอิน LINE ต้องเปิดจากลิงก์ LIFF ในแอป LINE หรือไอคอนแอปแล้วล็อกอิน จึงจะเพิ่ม/ลบได้"), login);
   } catch (e) {
     setSt("⚠️ เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ สาเหตุที่พบบ่อย: ยังไม่ได้ Deploy Code.gs เวอร์ชันใหม่, สิทธิ์ไม่ใช่ Anyone หรือ GAS_URL ไม่ตรง" + (login ? "" : " · และยังไม่ได้ล็อกอิน LINE"), false);
   }
@@ -542,12 +570,14 @@ const DK = "ems_draft";
 let dT;
 function saveDraft() {
   clearTimeout(dT);
-  dT = setTimeout(() => {
-    const vals = {}, checks = {};
-    document.querySelectorAll("input[id],select[id],textarea[id]").forEach(e => vals[e.id] = e.value);
-    ["mode", "dest", "ev"].forEach(n => checks[n] = [...document.querySelectorAll(`input[name="${n}"]:checked`)].map(c => c.value));
-    LS.set(DK, {t: Date.now(), np, vals, checks, op: curOp, editing});
-  }, 500);
+  dT = setTimeout(draftNow, 500);
+}
+function draftNow() {
+  clearTimeout(dT);
+  const vals = {}, checks = {};
+  document.querySelectorAll("input[id],select[id],textarea[id]").forEach(e => vals[e.id] = e.value);
+  ["mode", "dest", "ev"].forEach(n => checks[n] = [...document.querySelectorAll(`input[name="${n}"]:checked`)].map(c => c.value));
+  LS.set(DK, {t: Date.now(), np, vals, checks, op: curOp, editing});
 }
 ["input", "change"].forEach(ev => document.addEventListener(ev, e => { if (!e.target.closest("#ed")) saveDraft(); }));
 document.addEventListener("click", e => { if (e.target.closest("button") && !e.target.closest("#ed,#ov,#save,#clr")) saveDraft(); });
@@ -1056,7 +1086,7 @@ async function smLoad() {
   const t = bkkNow(); smDays = [0, -1, -2].map(n => { const x = new Date(t); x.setDate(x.getDate() + n); return isoOf(x); });
   const from = smDays[2], to = smDays[0];
   $("smrange").textContent = `นับจากเวลารับแจ้งจากศูนย์ · ${thDay(from)} – ${thDay(to)} · กำลังโหลด...`; $("smbody").innerHTML = "";
-  let tok = ""; try { tok = liff.getIDToken() || ""; } catch (e) {}
+  const tok = getTok();
   if (!tok) return smErr("ต้องเปิดจากลิงก์ LIFF ในแอป LINE (ยังไม่ได้เข้าสู่ระบบ)");
   try {
     const r = await fetchJsonp(`action=cases&from=${from}&to=${to}&t=${encodeURIComponent(tok)}`, 25000);
@@ -1111,7 +1141,7 @@ function rcFromLocal() {
 async function rcLoad() {
   rcItems = rcFromLocal(); rcRender();
   const st = $("rcst"); st.style.color = "var(--mute)"; st.textContent = "กำลังโหลดเคสของทั้งทีมจาก Sheet...";
-  let tok = ""; try { tok = liff.getIDToken() || ""; } catch (e) {}
+  const tok = getTok();
   if (!tok) { st.textContent = "ดึงเคสของทั้งทีมไม่ได้: ต้องเปิดจากลิงก์ LIFF ในแอป LINE" + (rcItems.length ? "\nเคสจากเครื่องนี้ด้านบนยังใช้ได้" : ""); return; }
   try {
     const r = await fetchJsonp(`action=recent&t=${encodeURIComponent(tok)}`, 20000);
@@ -1125,7 +1155,7 @@ async function rcOpen(c) {
   const label = `เคส ${rcDay(c.at)} ${c.tc || c.at.slice(11, 16)} · ${c.local ? "📱 จากข้อมูลในเครื่องนี้" : "☁️ จากข้อมูลใน Sheet (เป็นข้อมูลล่าสุดใน Sheet)"}`;
   if (c.local) return showSummary(c.data, {label});
   const st = $("rcst"); st.style.color = "var(--mute)"; st.textContent = "กำลังดึงข้อมูลเคสจาก Sheet...";
-  let tok = ""; try { tok = liff.getIDToken() || ""; } catch (e) {}
+  const tok = getTok();
   try {
     const r = await fetchJsonp(`action=case&op=${encodeURIComponent(c.op)}&t=${encodeURIComponent(tok)}`, 20000);
     if (!r.ok) { st.style.color = "var(--red)"; st.textContent = r.error === "unauthorized" ? "เข้าสู่ระบบ LINE หมดอายุ ปิดแล้วเปิดแอปใหม่" : r.error === "expired" ? "เคสนี้เกิน 12 ชั่วโมงแล้ว" : r.error === "not found" ? "ไม่พบเคสนี้ใน Sheet (อาจถูกลบหรือย้าย)" : "เซิร์ฟเวอร์แจ้ง: " + r.error; return; }
@@ -1204,7 +1234,7 @@ async function shCheck() {
 async function shWrite() {
   if (!confirm("ทดสอบบันทึกจริง: ระบบจะเพิ่มแถวทดสอบ 1 แถวลงใน Sheet แล้วลบทิ้งทันที ดำเนินการต่อหรือไม่?")) return;
   setSh("กำลังทดสอบบันทึกจริง...", null);
-  let tok = ""; try { tok = liff.getIDToken() || ""; } catch (e) {}
+  const tok = getTok();
   if (!tok) return setSh("✗ ยังไม่ได้เข้าสู่ระบบ LINE: ต้องเปิดจากลิงก์ LIFF ในแอป LINE (และ LIFF ID ในไฟล์ต้องถูกต้อง)", false);
   let prev = 0; try { const s0 = await fetchJsonp("action=status"); prev = (s0.lastPing && s0.lastPing.ts) || 0; } catch (e) { return shFail(); }
   const body = JSON.stringify({idToken: tok, action: "ping_write"}); let res = null;
@@ -1257,7 +1287,7 @@ async function doSave(data) {
   $("save").disabled = true; msg("กำลังบันทึก...", 1);
   data.op_no = curOp = curOp || genOp();   // เลขเคสเดิม = เขียนทับเคสเดิมใน Sheet (ส่งซ้ำได้ ไม่เกิดแถวซ้ำ)
   const fail = t => { msg(t.split("\n")[0]); alert(t); $("save").disabled = false; saveDraft(); };
-  let tok = ""; try { tok = liff.getIDToken() || ""; } catch (e) {}
+  const tok = getTok();
   if (!tok) return fail("ยังไม่ได้เข้าสู่ระบบ LINE (ต้องเปิดจากลิงก์ LIFF ในแอป LINE และ LIFF ID ในไฟล์ต้องถูกต้อง)\nข้อมูลที่กรอกยังอยู่ ลองปิดแล้วเปิดแอปใหม่ แล้วกดบันทึกอีกครั้ง");
   const body = JSON.stringify({idToken: tok, data}); let res = "", confirmed = true;
   try {
@@ -1288,9 +1318,13 @@ fillStaff(); restoreDraft(); showStat(); updateBirth(); updateApgar(); shCheck()
   if (bad.length) { const w = $("cfgwarn"); w.style.display = "block"; w.textContent = "⚠️ ไฟล์ index.html ยังตั้งค่า " + bad.join(" และ ") + " ไม่ถูกต้อง กรุณาแก้ที่ GitHub ก่อน จึงจะบันทึกเคสได้"; }
 })();
 liff.init({liffId: LIFF_ID}).then(async () => {
-  if (!liff.isLoggedIn()) return liff.login();
+  if (!liff.isLoggedIn()) { try { draftNow(); } catch (e) {} return liff.login({redirectUri: location.href.split("#")[0]}); }
+  liffReady = true;
+  if (!getTok()) return;   // นอก LINE และโทเคนหมดอายุ → relogin() ทำงานแล้ว
   syncLists();
-}).catch(() => { msg("เปิดใน LINE เท่านั้น / LIFF ID ยังไม่ถูกตั้งค่า"); setSt("ไม่ได้เชื่อมต่อ LINE (เปิดจากลิงก์ LIFF ในแอป LINE / เช็ก LIFF ID) จึงเพิ่ม/ลบรายชื่อไม่ได้", false); });
+}).catch(() => { msg("เชื่อมต่อ LINE ไม่ได้ / LIFF ID ยังไม่ถูกตั้งค่า"); setSt("ไม่ได้เชื่อมต่อ LINE (เปิดจากลิงก์ LIFF ในแอป LINE / เช็ก LIFF ID) จึงเพิ่ม/ลบรายชื่อไม่ได้", false); });
+/* กลับมาเปิดแอปจากไอคอนหลังทิ้งไว้นาน → เช็กโทเคน */
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && liffReady && !inLine()) getTok(); });
 </script>
 </body>
 </html>
